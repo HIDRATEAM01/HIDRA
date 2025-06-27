@@ -26,8 +26,10 @@ export const useConfigStore = defineStore("config", () => {
   async function fetchConfig() {
     loading.value = true;
     error.value = null;
+
+    const premise = getConfig();
     try {
-      const response = await getConfig();
+      const response = await premise;
 
       if (response.status !== 200) {
         throw new Error("Sem conexão.");

@@ -1,5 +1,5 @@
 <template>
-  <v-card style="width: 350px">
+  <v-card position="relative" style="width: 350px">
     <v-card-title class="mr-3">
       <v-icon v-if="icon" :icon="icon" size="medium" class="mr-2 mb-1" />
       {{ title }}
@@ -41,6 +41,15 @@
         </v-row>
       </v-form>
     </v-card-text>
+    <v-overlay
+      :model-value="model.loading"
+      class="align-center justify-center"
+      contained
+      persistent
+    >
+      <v-progress-circular indeterminate color="primary" size="64" />
+      <div class="mt-4">Carregando...</div>
+    </v-overlay>
   </v-card>
 </template>
 

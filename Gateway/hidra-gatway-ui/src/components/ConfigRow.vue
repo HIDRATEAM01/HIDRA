@@ -6,8 +6,11 @@
           title="Servidor"
           icon="mdi-lan"
           :fields="serverFields"
-          primaryButton="Ativar"
-          secondaryButton="Editar"
+          :formModel="networkData"
+          :readonly="serverReadOnly"
+          :primaryButton="serverReadOnly ? 'Ativar' : 'Salvar'"
+          :secondaryButton="serverReadOnly ? 'Editar' : 'Cancelar'"
+          @secondaryClick="toggleServerEdit"
         />
       </v-col>
       <v-col cols="auto">
@@ -15,6 +18,8 @@
           title="Wi-Fi"
           icon="mdi-wifi"
           :fields="wifiFields"
+          :formModel="networkData"
+          :readonly="wifiReadOnly"
           primaryButton="Ativar"
           secondaryButton="Redes"
         />
@@ -38,6 +43,7 @@
 <script>
 import ConfigBlock from "@/components/ConfigBlock.vue";
 import { useConfigStore } from "@/store/config";
+import { useNetworkStore } from "@/store/networks";
 import { storeToRefs } from "pinia";
 import { onMounted, ref } from "vue";
 
@@ -46,17 +52,19 @@ export default {
   components: { ConfigBlock },
   setup() {
     const configReadOnly = ref(true);
+    const serverReadOnly = ref(true);
+    const wifiReadOnly = ref(true);
 
     const serverFields = [
-      { name: "ssid", label: "Rede" },
-      { name: "pass", label: "Senha" },
-      { name: "ip", label: "IP" },
+      { name: "serverSSID", label: "Rede" },
+      { name: "serverPass", label: "Senha" },
+      { name: "serverIP", label: "IP" },
     ];
 
     const wifiFields = [
-      { name: "ssid", label: "Rede" },
-      { name: "status", label: "Status" },
-      { name: "ip", label: "IP" },
+      { name: "wifiSSID", label: "Rede" },
+      { name: "wifiRSSI", label: "Força" },
+      { name: "wifiIP", label: "IP" },
     ];
 
     const configFields = [
@@ -66,15 +74,24 @@ export default {
     ];
 
     const configStore = useConfigStore();
-
-    onMounted(() => {
-      configStore.fetchConfig();
-    });
-
+    const networkStore = useNetworkStore();
     const configData = storeToRefs(configStore);
+    const networkData = storeToRefs(networkStore);
+
+    onMounted(async () => {
+      await Promise.all([
+        networkStore.fetchServerConfig(),
+        networkStore.fetchWifiStatus(),
+        configStore.fetchConfig(),
+      ]);
+    });
 
     const toggleConfigEdit = () => {
       configReadOnly.value = !configReadOnly.value;
+    };
+
+    const toggleServerEdit = () => {
+      serverReadOnly.value = !serverReadOnly.value;
     };
 
     return {
@@ -83,10 +100,16 @@ export default {
       wifiFields,
       configFields,
 
-      // Config store rlative functions
+      // Config store rlative data
       configData,
       configReadOnly,
       toggleConfigEdit,
+
+      // Network store relative data
+      networkData,
+      serverReadOnly,
+      wifiReadOnly,
+      toggleServerEdit,
     };
   },
 };
