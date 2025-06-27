@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card style="width: 350px">
     <v-card-title class="mr-3">
       <v-icon v-if="icon" :icon="icon" size="medium" class="mr-2 mb-1" />
       {{ title }}
@@ -9,19 +9,22 @@
         <v-text-field
           v-for="field in fields"
           :key="field.name"
-          v-model="formData[field.name]"
+          v-model="model[field.name].value"
           :label="field.label"
           :type="field.type || 'text'"
+          :step="field.type === 'time' ? '1' : undefined"
           variant="outlined"
           hide-details="auto"
-          class="mb-3 text-end"
+          class="mb-3 text-main"
+          density="comfortable"
+          :disabled="readonly"
         />
-        <v-row>
+        <v-row class="px-10">
           <v-col v-if="primaryButton">
             <v-btn
               color="primary"
               class="text-none text-subtitle-1"
-              @click="$emit('submit', formData)"
+              @click="$emit('primaryClick', formData)"
             >
               {{ primaryButton }}
             </v-btn>
@@ -29,8 +32,8 @@
           <v-col v-if="secondaryButton">
             <v-btn
               color="secondary"
-              class="text-none text-subtitle-1 font-weight-800"
-              @click="$emit('submit', formData)"
+              class="text-none text-subtitle-1"
+              @click="$emit('secondaryClick', formData)"
             >
               {{ secondaryButton }}
             </v-btn>
@@ -42,8 +45,6 @@
 </template>
 
 <script>
-import { toRefs, reactive } from "vue";
-
 export default {
   name: "ConfigBlock",
   props: {
@@ -52,18 +53,20 @@ export default {
     fields: Array,
     primaryButton: String,
     secondaryButton: String,
+    formModel: Object,
+    readonly: Boolean,
   },
-  setup: function (props) {
-    const formData = reactive({});
+
+  setup(props) {
+    const model = props.formModel || {};
 
     props.fields.forEach((field) => {
-      formData[field.name] = field.value || "";
+      if (!(field.name in model)) {
+        model[field.name] = "";
+      }
     });
 
-    return {
-      ...toRefs(props),
-      formData,
-    };
+    return { model };
   },
 };
 </script>

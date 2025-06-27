@@ -20,8 +20,8 @@ Retorna parâmetros de configuração do dispositivo
 
 ```json
 {
-  "data": "22/04/2025",
-  "hora": "23:59:31",
+  "date": "22/04/2025",
+  "time": "23:59:31",
   "address": "0xaa"
 }
 ```
@@ -79,15 +79,15 @@ Retorna informação dos módulos conectados a este gateway
     {
       "id": 0,
       "name": "rio azul 2",
-      "data-recebido": "2025-23-06",
-      "hora-recebido": "14:19:00",
+      "recieve-date": "2025-23-06",
+      "recieve-time": "14:19:00",
       "bat": 45
     },
     {
       "id": 1,
       "name": "rio mais verde",
-      "data-recebido": "2025-23-06",
-      "hora-recebido": "12:29:00",
+      "recieve-date": "2025-23-06",
+      "recieve-time": "12:29:00",
       "bat": 36
     }
   ]
@@ -102,10 +102,10 @@ Retorna últimas leituras de um módulo específico conectado a este gateway
 {
   "id": 0,
   "name": "rio azul 2",
-  "data-recebido": "2025-23-06",
-  "hora-recebido": "14:19:00",
-  "data-modulo": "2025-23-06",
-  "hora-modulo": "14:19:00",
+  "recieve-date": "2025-23-06",
+  "recieve-time": "14:19:00",
+  "module-date": "2025-23-06",
+  "module-time": "14:19:00",
   "bat": 45,
   "sensors": [
     {
@@ -147,8 +147,8 @@ Define uma nova configuração de relógio
 
 ```json
 {
-  "data": "22/04/2025",
-  "hora": "23:59:31"
+  "date": "22/04/2025",
+  "time": "23:59:31"
 }
 ```
 
