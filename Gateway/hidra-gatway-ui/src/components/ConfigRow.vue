@@ -6,7 +6,7 @@
           title="Servidor"
           icon="mdi-lan"
           :fields="serverFields"
-          :formModel="networkData"
+          :formModel="serverFormModel"
           :readonly="serverReadOnly"
           :primaryButton="serverReadOnly ? 'Ativar' : 'Salvar'"
           :secondaryButton="serverReadOnly ? 'Editar' : 'Cancelar'"
@@ -18,7 +18,7 @@
           title="Wi-Fi"
           icon="mdi-wifi"
           :fields="wifiFields"
-          :formModel="networkData"
+          :formModel="wifiFormModel"
           :readonly="wifiReadOnly"
           primaryButton="Ativar"
           secondaryButton="Redes"
@@ -29,7 +29,7 @@
           title="Configurações"
           icon="mdi-cog"
           :fields="configFields"
-          :formModel="configData"
+          :formModel="configFormModel"
           :readonly="configReadOnly"
           :primaryButton="configReadOnly ? 'Detalhes' : 'Salvar'"
           :secondaryButton="configReadOnly ? 'Editar' : 'Cancelar'"
@@ -56,15 +56,15 @@ export default {
     const wifiReadOnly = ref(true);
 
     const serverFields = [
-      { name: "serverSSID", label: "Rede" },
-      { name: "serverPass", label: "Senha" },
-      { name: "serverIP", label: "IP" },
+      { name: "ssid", label: "Rede" },
+      { name: "pass", label: "Senha" },
+      { name: "ip", label: "IP" },
     ];
 
     const wifiFields = [
-      { name: "wifiSSID", label: "Rede" },
-      { name: "wifiRSSI", label: "Força" },
-      { name: "wifiIP", label: "IP" },
+      { name: "ssid", label: "Rede" },
+      { name: "rssi", label: "Força" },
+      { name: "ip", label: "IP" },
     ];
 
     const configFields = [
@@ -77,6 +77,30 @@ export default {
     const networkStore = useNetworkStore();
     const configData = storeToRefs(configStore);
     const networkData = storeToRefs(networkStore);
+
+    const configFormModel = {
+      date: configData.date,
+      time: configData.time,
+      address: configData.address,
+      loading: configData.loading,
+      error: configData.error,
+    };
+
+    const wifiFormModel = {
+      ssid: networkData.wifiSSID,
+      rssi: networkData.wifiRSSI,
+      ip: networkData.wifiIP,
+      loading: networkData.loadingWifiStatus,
+      error: networkData.errorWifiStatus,
+    };
+
+    const serverFormModel = {
+      ssid: networkData.serverSSID,
+      pass: networkData.serverPass,
+      ip: networkData.serverIP,
+      loading: networkData.loadingServerConfig,
+      error: networkData.errorServerConfig,
+    };
 
     onMounted(async () => {
       await Promise.all([
@@ -100,16 +124,19 @@ export default {
       wifiFields,
       configFields,
 
-      // Config store rlative data
-      configData,
+      // Server block relative data
+      serverFormModel,
+      serverReadOnly,
+      toggleServerEdit,
+
+      // Wifi block relative data
+      wifiFormModel,
+      wifiReadOnly,
+
+      // Config block relative data
+      configFormModel,
       configReadOnly,
       toggleConfigEdit,
-
-      // Network store relative data
-      networkData,
-      serverReadOnly,
-      wifiReadOnly,
-      toggleServerEdit,
     };
   },
 };
