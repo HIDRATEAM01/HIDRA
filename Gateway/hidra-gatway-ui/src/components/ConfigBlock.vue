@@ -42,7 +42,7 @@
       </v-form>
     </v-card-text>
     <v-overlay
-      :model-value="model.loading"
+      :model-value="model.loading.value"
       class="align-center justify-center"
       contained
       persistent
