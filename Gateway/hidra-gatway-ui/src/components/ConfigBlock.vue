@@ -24,7 +24,7 @@
             <v-btn
               color="primary"
               class="text-none text-subtitle-1"
-              @click="$emit('primaryClick', formData)"
+              @click="$emit('primaryClick')"
             >
               {{ primaryButton }}
             </v-btn>
@@ -33,7 +33,7 @@
             <v-btn
               color="secondary"
               class="text-none text-subtitle-1"
-              @click="$emit('secondaryClick', formData)"
+              @click="$emit('secondaryClick')"
             >
               {{ secondaryButton }}
             </v-btn>

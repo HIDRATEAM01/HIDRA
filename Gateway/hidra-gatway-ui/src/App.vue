@@ -1,6 +1,17 @@
 <template>
   <router-view />
+  <AppSnackbar />
 </template>
+
+<script>
+import AppSnackbar from "@/components/SnackBar.vue";
+
+export default {
+  components: {
+    AppSnackbar,
+  },
+};
+</script>
 
 <style>
 html,

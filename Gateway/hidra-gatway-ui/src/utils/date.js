@@ -1,16 +1,24 @@
 export function parseDateString(dateString) {
-  const [dia, mes, ano] = dateString.split("/");
+  if (dateString === null) return null;
+  let [ano, mes, dia] = [null, null, null];
+
+  if (dateString.indexOf("/") === -1) {
+    [ano, mes, dia] = dateString.split("-");
+  } else {
+    [dia, mes, ano] = dateString.split("/");
+  }
   if (!dia || !mes || !ano) {
-    throw new Error("Invalid date format");
+    return null;
   }
   const date = new Date(`${ano}-${mes}-${dia}`);
   return date;
 }
 
 export function parseTimeString(timeString) {
+  if (timeString === null) return null;
   const [horas, minutos, segundos] = timeString.split(":");
   if (!horas || !minutos || !segundos) {
-    throw new Error("Invalid time format");
+    return null;
   }
   const date = new Date();
   date.setHours(
@@ -21,17 +29,38 @@ export function parseTimeString(timeString) {
   return date;
 }
 
-export function parseToDateTime(dateString, timeString) {
+export function getDateString(clock) {
+  if (!clock) clock = new Date();
+  const year = clock.getFullYear();
+  const month = String(clock.getMonth() + 1).padStart(2, "0");
+  const day = String(clock.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function getTimeString(clock) {
+  if (!clock) clock = new Date();
+  const hours = String(clock.getHours()).padStart(2, "0");
+  const minutes = String(clock.getMinutes()).padStart(2, "0");
+  const seconds = String(clock.getSeconds()).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+export function updateClock(clock, dateString, timeString) {
   const date = parseDateString(dateString);
   const time = parseTimeString(timeString);
-  if (!date || !time) {
-    return null;
+
+  if (!clock) {
+    clock = new Date("2000-01-01T00:00:00");
   }
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-    time.getHours(),
-    time.getMinutes()
-  );
+  if (date) {
+    clock.setFullYear(date.getFullYear());
+    clock.setMonth(date.getMonth());
+    clock.setDate(date.getDate());
+  }
+  if (time) {
+    clock.setHours(time.getHours());
+    clock.setMinutes(time.getMinutes());
+    clock.setSeconds(time.getSeconds());
+  }
+  return clock;
 }

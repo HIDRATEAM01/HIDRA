@@ -25,5 +25,5 @@ export function postServerConfig(config) {
 
 //TODO: Add store function to delete the current wifi network
 export function deleteWifiNetwork(networkId, config) {
-  return api.delete(`/wifi/networks/${networkId}`, { data: config });
+  return api.delete(`/wifi/networks/${networkId}`, config);
 }

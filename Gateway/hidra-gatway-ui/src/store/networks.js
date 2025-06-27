@@ -7,15 +7,34 @@ export const useNetworkStore = defineStore("networks", () => {
   const serverSSID = ref("");
   const serverPass = ref("");
   const serverIP = ref("");
+  const serverStatus = ref("");
 
   const wifiSSID = ref("");
   const wifiRSSI = ref("");
   const wifiIP = ref("");
+  const wifiStatus = ref("");
 
   const loadingServerConfig = ref(false);
-  const loadingWifiStatus = ref(false);
   const errorServerConfig = ref(null);
+
+  const loadingWifiStatus = ref(false);
   const errorWifiStatus = ref(null);
+
+  const backupServerConfig = ref({});
+
+  function holdServerConfig() {
+    backupServerConfig.value = {
+      ssid: serverSSID.value,
+      pass: serverPass.value,
+      ip: serverIP.value,
+    };
+  }
+
+  function restoreServerConfig() {
+    serverSSID.value = backupServerConfig.value.ssid;
+    serverPass.value = backupServerConfig.value.pass;
+    serverIP.value = backupServerConfig.value.ip;
+  }
 
   async function fetchServerConfig() {
     loadingServerConfig.value = true;
@@ -34,6 +53,7 @@ export const useNetworkStore = defineStore("networks", () => {
       serverSSID.value = data.ssid;
       serverPass.value = data.pass;
       serverIP.value = data.ip;
+      serverStatus.value = data.status == 1;
     } catch (err) {
       errorServerConfig.value = err.message;
     } finally {
@@ -57,6 +77,7 @@ export const useNetworkStore = defineStore("networks", () => {
       wifiSSID.value = data.ssid;
       wifiRSSI.value = data.rssi;
       wifiIP.value = data.ip;
+      wifiStatus.value = data.status == 1;
     } catch (err) {
       errorWifiStatus.value = err.message;
     } finally {
@@ -69,14 +90,18 @@ export const useNetworkStore = defineStore("networks", () => {
     serverSSID,
     serverPass,
     serverIP,
+    serverStatus,
     loadingServerConfig,
     errorServerConfig,
     fetchServerConfig,
+    holdServerConfig,
+    restoreServerConfig,
 
     // Wifi Status
     wifiSSID,
     wifiRSSI,
     wifiIP,
+    wifiStatus,
     loadingWifiStatus,
     errorWifiStatus,
     fetchWifiStatus,

@@ -8,9 +8,18 @@ $NUM_SENSORES = 5;
 $sensorTypes = ['NTC', 'COR', 'SUN'];
 $moduleNames = ['rio azul 2', 'rio mais verde', 'verde vivo', 'hidra nascente'];
 
+$serverStatus = 0; // 1 = ligado, 0 = desligado
+$wifiStatus = 0; // 1 = ligado, 0 = desligado
+
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE');
+header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 // Utilitários
 function randomDateTime()
@@ -71,7 +80,8 @@ if ($method === 'GET') {
         echo json_encode([
             "ssid" => "wifi-teste",
             "rssi" => "-30db",
-            "ip" => "192.168.4.1"
+            "ip" => "192.168.4.1",
+            "status" => $wifiStatus
         ]);
     } elseif ($uri === '/wifi/networks') {
         echo json_encode([
@@ -90,7 +100,8 @@ if ($method === 'GET') {
         echo json_encode([
             "ssid" => "hidra",
             "pass" => "hidra1234",
-            "ip" => "192.168.4.1"
+            "ip" => "192.168.4.1",
+            "status" => $serverStatus
         ]);
     } elseif ($uri === '/modules') {
         echo json_encode(["modules" => getModules($GLOBALS['NUM_MODULOS'])]);
@@ -115,6 +126,12 @@ if ($method === 'GET') {
 
     if ($uri === '/wifi/connect') {
         echo json_encode(["status" => "connecting", "input" => $input]);
+    } elseif ($uri === '/wifi/toggle') {
+        $wifiStatus = $input["status"];
+        echo json_encode(["status" => "wifi toggled", "input" => $input]);
+    } elseif ($uri === '/server/toggle') {
+        $serverStatus = $input["status"];
+        echo json_encode(["status" => "server toggled", "input" => $input]);
     } elseif ($uri === '/config/time') {
         echo json_encode(["status" => "time updated", "input" => $input]);
     } elseif ($uri === '/server/config') {

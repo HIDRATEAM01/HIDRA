@@ -7,9 +7,16 @@
           icon="mdi-lan"
           :fields="serverFields"
           :formModel="serverFormModel"
-          :readonly="serverReadOnly"
-          :primaryButton="serverReadOnly ? 'Ativar' : 'Salvar'"
-          :secondaryButton="serverReadOnly ? 'Editar' : 'Cancelar'"
+          :readonly="!serverEditMode"
+          :primaryButton="
+            serverEditMode
+              ? 'Salvar'
+              : serverFormModel.status.value
+              ? 'Desativar'
+              : 'Ativar'
+          "
+          :secondaryButton="serverEditMode ? 'Cancelar' : 'Editar'"
+          @primaryClick="primaryServerClick"
           @secondaryClick="toggleServerEdit"
         />
       </v-col>
@@ -19,9 +26,9 @@
           icon="mdi-wifi"
           :fields="wifiFields"
           :formModel="wifiFormModel"
-          :readonly="wifiReadOnly"
-          primaryButton="Ativar"
+          :primaryButton="wifiFormModel.status.value ? 'Desativar' : 'Ativar'"
           secondaryButton="Redes"
+          readonly
         />
       </v-col>
       <v-col cols="auto">
@@ -30,10 +37,11 @@
           icon="mdi-cog"
           :fields="configFields"
           :formModel="configFormModel"
-          :readonly="configReadOnly"
-          :primaryButton="configReadOnly ? 'Detalhes' : 'Salvar'"
-          :secondaryButton="configReadOnly ? 'Editar' : 'Cancelar'"
-          @secondaryClick="toggleConfigEdit()"
+          :readonly="!configEditMode"
+          :primaryButton="configEditMode ? 'Salvar' : 'Detalhes'"
+          :secondaryButton="configEditMode ? 'Cancelar' : 'Editar'"
+          @primaryClick="primaryConfigClick"
+          @secondaryClick="toggleConfigEdit"
         />
       </v-col>
     </v-row>
@@ -51,9 +59,8 @@ export default {
   name: "ConfigRow",
   components: { ConfigBlock },
   setup() {
-    const configReadOnly = ref(true);
-    const serverReadOnly = ref(true);
-    const wifiReadOnly = ref(true);
+    const configEditMode = ref(false);
+    const serverEditMode = ref(false);
 
     const serverFields = [
       { name: "ssid", label: "Rede" },
@@ -90,6 +97,7 @@ export default {
       ssid: networkData.wifiSSID,
       rssi: networkData.wifiRSSI,
       ip: networkData.wifiIP,
+      status: networkData.wifiStatus,
       loading: networkData.loadingWifiStatus,
       error: networkData.errorWifiStatus,
     };
@@ -98,6 +106,7 @@ export default {
       ssid: networkData.serverSSID,
       pass: networkData.serverPass,
       ip: networkData.serverIP,
+      status: networkData.serverStatus,
       loading: networkData.loadingServerConfig,
       error: networkData.errorServerConfig,
     };
@@ -110,12 +119,42 @@ export default {
       ]);
     });
 
+    const primaryConfigClick = () => {
+      if (configEditMode.value) {
+        configStore.saveConfig();
+        configEditMode.value = false;
+      } else {
+        // TODO: Open config details modal
+        console.log("Open config details modal");
+      }
+    };
+
     const toggleConfigEdit = () => {
-      configReadOnly.value = !configReadOnly.value;
+      if (configEditMode.value) {
+        configStore.restoreConfig();
+      } else {
+        configStore.holdConfig();
+      }
+      configEditMode.value = !configEditMode.value;
+    };
+
+    const primaryServerClick = () => {
+      if (serverEditMode.value) {
+        networkStore.saveServerConfig();
+      } else {
+        //TODO: Toggle server status
+        console.log("Toggle server status");
+      }
     };
 
     const toggleServerEdit = () => {
-      serverReadOnly.value = !serverReadOnly.value;
+      if (serverEditMode.value) {
+        networkStore.restoreServerConfig();
+      } else {
+        networkStore.holdServerConfig();
+      }
+
+      serverEditMode.value = !serverEditMode.value;
     };
 
     return {
@@ -126,17 +165,18 @@ export default {
 
       // Server block relative data
       serverFormModel,
-      serverReadOnly,
+      serverEditMode,
       toggleServerEdit,
+      primaryServerClick,
 
       // Wifi block relative data
       wifiFormModel,
-      wifiReadOnly,
 
       // Config block relative data
       configFormModel,
-      configReadOnly,
+      configEditMode,
       toggleConfigEdit,
+      primaryConfigClick,
     };
   },
 };
