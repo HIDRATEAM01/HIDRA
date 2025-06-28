@@ -9,18 +9,21 @@ export function getWifiNetworks() {
   return api.get("/wifi/networks");
 }
 
-export function getServerConfig() {
-  return api.get("/server/config");
+export function postWifiStatus(config) {
+  return api.post("/wifi/toggle", config, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 //TODO: Add store function to save the current wifi network
-export function postWifiConnect() {
-  return api.post("/wifi/connect");
-}
-
-//TODO: Add store function to save new server config
-export function postServerConfig(config) {
-  return api.post("/server/config", config);
+export function postWifiConnect(config) {
+  return api.post("/wifi/connect", config, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 //TODO: Add store function to delete the current wifi network

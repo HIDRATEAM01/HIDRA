@@ -4,22 +4,22 @@ export function getModules() {
   return api.get("/modules");
 }
 
-// TODO: Implement pagination
-export function getModule(module) {
+// TODO: Implement
+export function getModuleById(module) {
   return api.get(`/modules/${module}/data`);
 }
 
-//TODO: Implement pagination
+//TODO: Implement
 export function postModuleConfig(idmodule, config) {
   return api.post(`/modules/${idmodule}/config`, config);
 }
 
-//TODO: Implement pagination
+//TODO: Implement
 export function postModuleNew(config) {
   return api.post(`/modules/new`, config);
 }
 
-//TODO: Implement pagination
+//TODO: Implement
 export function deleteModule(idmodule, config) {
   return api.delete(`/modules/${idmodule}`, config);
 }

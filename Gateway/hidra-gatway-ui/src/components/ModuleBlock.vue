@@ -13,14 +13,15 @@
       </v-row>
     </v-card-title>
     <v-card-text>
-      <v-row v-for="(label, key) in labels" :key="key">
+      <v-row v-for="(field, key) in fields" :key="key">
         <v-text-field
-          :label="label"
+          :label="field.label"
+          v-model="field.value"
           variant="outlined"
           hide-details="auto"
           class="mb-3 text-end"
           density="comfortable"
-          readonly
+          disabled
         />
       </v-row>
       <v-row>
@@ -39,14 +40,19 @@ export default {
   name: "ModuleBlock",
   props: {
     title: String,
+    values: Object,
   },
   setup: function (props) {
-    const labels = {
-      leitura: "Data/Hora",
-      relogio: "Bateria",
-      bateria: "Endereço",
-    };
-    return { props, labels };
+    const fields = [
+      {
+        label: "Data/Hora",
+        value: props.values.recieveTime,
+      },
+      { label: "Bateria", value: `${props.values.bat} %` },
+      { label: "Endereço", value: props.values.address },
+    ];
+
+    return { props, fields };
   },
 };
 </script>

@@ -1,15 +1,15 @@
 <?php
 
 // Configurações iniciais
-$NUM_MODULOS = 3;
+$NUM_MODULOS = 6;
 $NUM_SENSORES = 5;
 
 // Simula nomes de sensores e módulos
 $sensorTypes = ['NTC', 'COR', 'SUN'];
-$moduleNames = ['rio azul 2', 'rio mais verde', 'verde vivo', 'hidra nascente'];
+$moduleNames = ['rio azul 2', 'rio mais verde', 'verde vivo', 'hidra nascente', 'rio de março', 'lagoa azul'];
 
 $serverStatus = 0; // 1 = ligado, 0 = desligado
-$wifiStatus = 0; // 1 = ligado, 0 = desligado
+$wifiStatus = 1; // 1 = ligado, 0 = desligado
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE');
@@ -57,8 +57,9 @@ function getModules($num)
         $mods[] = [
             "id" => $i,
             "name" => $moduleNames[$i % count($moduleNames)],
-            "recieve-date" => date("Y-d-m"),
+            "recieve-date" => date("d/m/Y"),
             "recieve-time" => date("H:i:s"),
+            "address" => "0x" . dechex(rand(0, 255)) . dechex(rand(0, 255)),
             "bat" => rand(20, 100)
         ];
     }
@@ -74,7 +75,7 @@ if ($method === 'GET') {
         header('Content-Type: text/plain');
         readfile('../README.md');
     } elseif ($uri === '/config') {
-        sleep(2); // Simula atraso de 2 segundos
+        sleep(2);
         echo json_encode(array_merge(randomDateTime(), ["address" => "0xaa"]));
     } elseif ($uri === '/wifi/status') {
         echo json_encode([
@@ -104,16 +105,18 @@ if ($method === 'GET') {
             "status" => $serverStatus
         ]);
     } elseif ($uri === '/modules') {
+        sleep(1);
         echo json_encode(["modules" => getModules($GLOBALS['NUM_MODULOS'])]);
     } elseif (preg_match('#^/modules/(\d+)/date$#', $uri, $matches)) {
         $id = intval($matches[1]);
         echo json_encode([
             "id" => $id,
             "name" => $moduleNames[$id % count($moduleNames)],
-            "recieve-date" => date("Y-d-m"),
+            "recieve-date" => date("d/m/Y"),
             "recieve-time" => date("H:i:s"),
-            "module-date" => date("Y-d-m"),
+            "module-date" => date("d/m/Y"),
             "module-time" => date("H:i:s"),
+            "address" => "0x" . dechex(rand(0, 255)) . dechex(rand(0, 255)),
             "bat" => rand(20, 100),
             "sensors" => array_map(fn($i) => randSensor($i), range(0, $GLOBALS['NUM_SENSORES'] - 1))
         ]);

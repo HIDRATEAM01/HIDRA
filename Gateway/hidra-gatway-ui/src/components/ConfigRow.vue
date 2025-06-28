@@ -5,43 +5,39 @@
         <ConfigBlock
           title="Servidor"
           icon="mdi-lan"
-          :fields="serverFields"
-          :formModel="serverFormModel"
-          :readonly="!serverEditMode"
-          :primaryButton="
-            serverEditMode
-              ? 'Salvar'
-              : serverFormModel.status.value
-              ? 'Desativar'
-              : 'Ativar'
-          "
-          :secondaryButton="serverEditMode ? 'Cancelar' : 'Editar'"
-          @primaryClick="primaryServerClick"
-          @secondaryClick="toggleServerEdit"
+          :fields="serverStore.fields"
+          :loading="serverStore.loading"
+          :readonly="!serverStore.isEditMode"
+          :primaryButton="serverPrimaryButton"
+          :secondaryButton="serverStore.isEditMode ? 'Cancelar' : 'Editar'"
+          @primaryClick="serverStore.primaryClick"
+          @secondaryClick="serverStore.secondaryClick"
         />
       </v-col>
       <v-col cols="auto">
         <ConfigBlock
           title="Wi-Fi"
           icon="mdi-wifi"
-          :fields="wifiFields"
-          :formModel="wifiFormModel"
-          :primaryButton="wifiFormModel.status.value ? 'Desativar' : 'Ativar'"
+          :fields="wifiStore.fields"
+          :loading="wifiStore.loading"
+          :readonly="true"
+          :primaryButton="wifiStore.status ? 'Desativar' : 'Ativar'"
           secondaryButton="Redes"
-          readonly
+          @primaryClick="wifiStore.primaryClick"
+          @secondaryClick="wifiStore.secondaryClick"
         />
       </v-col>
       <v-col cols="auto">
         <ConfigBlock
           title="Configurações"
           icon="mdi-cog"
-          :fields="configFields"
-          :formModel="configFormModel"
-          :readonly="!configEditMode"
-          :primaryButton="configEditMode ? 'Salvar' : 'Detalhes'"
-          :secondaryButton="configEditMode ? 'Cancelar' : 'Editar'"
-          @primaryClick="primaryConfigClick"
-          @secondaryClick="toggleConfigEdit"
+          :fields="configStore.fields"
+          :loading="configStore.loading"
+          :readonly="!configStore.isEditMode"
+          :primaryButton="configStore.isEditMode ? 'Salvar' : 'Detalhes'"
+          :secondaryButton="configStore.isEditMode ? 'Cancelar' : 'Editar'"
+          @primaryClick="configStore.primaryClick"
+          @secondaryClick="configStore.secondaryClick"
         />
       </v-col>
     </v-row>
@@ -50,133 +46,39 @@
 
 <script>
 import ConfigBlock from "@/components/ConfigBlock.vue";
-import { useConfigStore } from "@/store/config";
-import { useNetworkStore } from "@/store/networks";
-import { storeToRefs } from "pinia";
-import { onMounted, ref } from "vue";
+import { useConfigStore } from "@/store/configStore";
+import { useServerStore } from "@/store/serverStore";
+import { useWifiStore } from "@/store/wifiStore";
+import { computed, onMounted } from "vue";
 
 export default {
   name: "ConfigRow",
   components: { ConfigBlock },
   setup() {
-    const configEditMode = ref(false);
-    const serverEditMode = ref(false);
-
-    const serverFields = [
-      { name: "ssid", label: "Rede" },
-      { name: "pass", label: "Senha" },
-      { name: "ip", label: "IP" },
-    ];
-
-    const wifiFields = [
-      { name: "ssid", label: "Rede" },
-      { name: "rssi", label: "Força" },
-      { name: "ip", label: "IP" },
-    ];
-
-    const configFields = [
-      { name: "date", label: "Data", type: "date" },
-      { name: "time", label: "Hora", type: "time" },
-      { name: "address", label: "Endereço" },
-    ];
-
     const configStore = useConfigStore();
-    const networkStore = useNetworkStore();
-    const configData = storeToRefs(configStore);
-    const networkData = storeToRefs(networkStore);
-
-    const configFormModel = {
-      date: configData.date,
-      time: configData.time,
-      address: configData.address,
-      loading: configData.loading,
-      error: configData.error,
-    };
-
-    const wifiFormModel = {
-      ssid: networkData.wifiSSID,
-      rssi: networkData.wifiRSSI,
-      ip: networkData.wifiIP,
-      status: networkData.wifiStatus,
-      loading: networkData.loadingWifiStatus,
-      error: networkData.errorWifiStatus,
-    };
-
-    const serverFormModel = {
-      ssid: networkData.serverSSID,
-      pass: networkData.serverPass,
-      ip: networkData.serverIP,
-      status: networkData.serverStatus,
-      loading: networkData.loadingServerConfig,
-      error: networkData.errorServerConfig,
-    };
+    const serverStore = useServerStore();
+    const wifiStore = useWifiStore();
 
     onMounted(async () => {
       await Promise.all([
-        networkStore.fetchServerConfig(),
-        networkStore.fetchWifiStatus(),
-        configStore.fetchConfig(),
+        wifiStore.fetch(),
+        serverStore.fetch(),
+        configStore.fetch(),
       ]);
     });
 
-    const primaryConfigClick = () => {
-      if (configEditMode.value) {
-        configStore.saveConfig();
-        configEditMode.value = false;
-      } else {
-        // TODO: Open config details modal
-        console.log("Open config details modal");
+    const serverPrimaryButton = computed(() => {
+      if (serverStore.isEditMode) {
+        return "Salvar";
       }
-    };
-
-    const toggleConfigEdit = () => {
-      if (configEditMode.value) {
-        configStore.restoreConfig();
-      } else {
-        configStore.holdConfig();
-      }
-      configEditMode.value = !configEditMode.value;
-    };
-
-    const primaryServerClick = () => {
-      if (serverEditMode.value) {
-        networkStore.saveServerConfig();
-      } else {
-        //TODO: Toggle server status
-        console.log("Toggle server status");
-      }
-    };
-
-    const toggleServerEdit = () => {
-      if (serverEditMode.value) {
-        networkStore.restoreServerConfig();
-      } else {
-        networkStore.holdServerConfig();
-      }
-
-      serverEditMode.value = !serverEditMode.value;
-    };
+      return serverStore.status ? "Desativar" : "Ativar";
+    });
 
     return {
-      // Fields for each configuration block
-      serverFields,
-      wifiFields,
-      configFields,
-
-      // Server block relative data
-      serverFormModel,
-      serverEditMode,
-      toggleServerEdit,
-      primaryServerClick,
-
-      // Wifi block relative data
-      wifiFormModel,
-
-      // Config block relative data
-      configFormModel,
-      configEditMode,
-      toggleConfigEdit,
-      primaryConfigClick,
+      configStore,
+      serverStore,
+      wifiStore,
+      serverPrimaryButton,
     };
   },
 };

@@ -6,18 +6,12 @@
     </v-card-title>
     <v-card-text>
       <v-form>
-        <v-text-field
+        <ConfigTextField
           v-for="field in fields"
           :key="field.name"
-          v-model="model[field.name].value"
-          :label="field.label"
-          :type="field.type || 'text'"
-          :step="field.type === 'time' ? '1' : undefined"
-          variant="outlined"
-          hide-details="auto"
-          class="mb-3 text-main"
-          density="comfortable"
-          :disabled="readonly"
+          v-model="field.model"
+          :field="field"
+          :readonly="readonly"
         />
         <v-row class="px-10">
           <v-col v-if="primaryButton">
@@ -42,7 +36,7 @@
       </v-form>
     </v-card-text>
     <v-overlay
-      :model-value="model.loading.value"
+      :model-value="loading"
       class="align-center justify-center"
       contained
       persistent
@@ -54,28 +48,21 @@
 </template>
 
 <script>
+import ConfigTextField from "@/components/ConfigTextField.vue";
+
 export default {
   name: "ConfigBlock",
+  components: {
+    ConfigTextField,
+  },
   props: {
     icon: String,
     title: String,
     fields: Array,
+    loading: Boolean,
     primaryButton: String,
     secondaryButton: String,
-    formModel: Object,
     readonly: Boolean,
-  },
-
-  setup(props) {
-    const model = props.formModel || {};
-
-    props.fields.forEach((field) => {
-      if (!(field.name in model)) {
-        model[field.name] = "";
-      }
-    });
-
-    return { model };
   },
 };
 </script>

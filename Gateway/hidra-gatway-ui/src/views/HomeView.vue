@@ -3,7 +3,7 @@
     <HomeHeader />
     <ConfigRow />
     <v-row>
-      <v-col cols="12" class="text-center mt-4">
+      <v-col cols="12" class="text-center mt-6">
         <h2 class="shadow-2 text-textmain">Últimas Conexões</h2>
       </v-col>
     </v-row>

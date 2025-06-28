@@ -10,7 +10,7 @@
 
 <script>
 import { storeToRefs } from "pinia";
-import { useNotificationStore } from "@/store/notifications";
+import { useNotificationStore } from "@/store/notificationStore";
 
 export default {
   name: "AppSnackbar",

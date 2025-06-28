@@ -1,3 +1,7 @@
+function newClock() {
+  return new Date("2000-01-01T00:00:00");
+}
+
 export function parseDateString(dateString) {
   if (dateString === null) return null;
   let [ano, mes, dia] = [null, null, null];
@@ -20,7 +24,7 @@ export function parseTimeString(timeString) {
   if (!horas || !minutos || !segundos) {
     return null;
   }
-  const date = new Date();
+  const date = newClock();
   date.setHours(
     parseInt(horas, 10),
     parseInt(minutos, 10),
@@ -30,7 +34,7 @@ export function parseTimeString(timeString) {
 }
 
 export function getDateString(clock) {
-  if (!clock) clock = new Date();
+  if (!clock) clock = newClock();
   const year = clock.getFullYear();
   const month = String(clock.getMonth() + 1).padStart(2, "0");
   const day = String(clock.getDate()).padStart(2, "0");
@@ -38,20 +42,23 @@ export function getDateString(clock) {
 }
 
 export function getTimeString(clock) {
-  if (!clock) clock = new Date();
+  if (!clock) clock = newClock();
   const hours = String(clock.getHours()).padStart(2, "0");
   const minutes = String(clock.getMinutes()).padStart(2, "0");
   const seconds = String(clock.getSeconds()).padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
 }
 
-export function updateClock(clock, dateString, timeString) {
+export function updateClock(oldClock, dateString, timeString) {
   const date = parseDateString(dateString);
   const time = parseTimeString(timeString);
 
-  if (!clock) {
-    clock = new Date("2000-01-01T00:00:00");
+  if (!oldClock) {
+    oldClock = newClock();
   }
+
+  let clock = new Date(oldClock.getTime());
+
   if (date) {
     clock.setFullYear(date.getFullYear());
     clock.setMonth(date.getMonth());
