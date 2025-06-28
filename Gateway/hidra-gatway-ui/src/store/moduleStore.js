@@ -45,10 +45,19 @@ export const useModuleStore = defineStore("module", () => {
   }
   //#endregion
 
+  function openModule(idModule) {
+    const module = modules.value.find((mod) => mod.id === idModule);
+    if (module) {
+      // TODO: Implement module opening logic
+      notificationStore.raise(`Abrindo módulo: ${module.name}`, "info");
+    }
+  }
+
   return {
     loading,
     error,
     modules,
     fetch,
+    openModule,
   };
 });

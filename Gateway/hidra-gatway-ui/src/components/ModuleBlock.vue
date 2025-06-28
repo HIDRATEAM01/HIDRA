@@ -26,7 +26,11 @@
       </v-row>
       <v-row>
         <v-col>
-          <v-btn color="primary" class="text-none text-subtitle-1">
+          <v-btn
+            color="primary"
+            class="text-none text-subtitle-1"
+            @click="moduleStore.openModule(props.values.id)"
+          >
             Ver Medições
           </v-btn>
         </v-col>
@@ -36,6 +40,8 @@
 </template>
 
 <script>
+import { useModuleStore } from "@/store/moduleStore";
+
 export default {
   name: "ModuleBlock",
   props: {
@@ -43,6 +49,8 @@ export default {
     values: Object,
   },
   setup: function (props) {
+    const moduleStore = useModuleStore();
+
     const fields = [
       {
         label: "Data/Hora",
@@ -52,7 +60,7 @@ export default {
       { label: "Endereço", value: props.values.address },
     ];
 
-    return { props, fields };
+    return { props, fields, moduleStore };
   },
 };
 </script>

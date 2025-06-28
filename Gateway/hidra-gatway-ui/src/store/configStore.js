@@ -134,6 +134,7 @@ export const useConfigStore = defineStore("config", () => {
       saveConfig();
     } else {
       //TODO: openDetails.value = true;
+      notificationStore.raise("Funcionalidade ainda não implementada.", "info");
     }
   };
 
