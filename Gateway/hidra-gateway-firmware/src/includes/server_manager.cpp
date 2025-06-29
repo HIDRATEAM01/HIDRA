@@ -79,13 +79,19 @@ void ServerManager::setupGetRoutes() {
     std::vector<WifiCredential> savedNetworks = wifiStore.getSavedNetworks();
 
     JsonDocument doc;
-    deserializeJson(doc, networks);
+    DeserializationError error = deserializeJson(doc, networks);
+
+    if (error) {
+      serial.log(LOG_ERROR, "[ServerManager] [/wifi/networks]: Erro ao desserializar JSON: ", error.c_str());
+      return;
+    }
+
     JsonArray saved = doc["saved"].to<JsonArray>();
-    JsonArray near = doc["near"].to<JsonArray>();
+    JsonArray near = doc["near"].as<JsonArray>();
 
     int i = 0;
     for (const auto &network : savedNetworks) {
-      JsonObject obj = saved.createNestedObject();
+      JsonObject obj = saved.add<JsonObject>();
       obj["id"] = i++;
       obj["ssid"] = network.ssid;
       obj["password"] = network.password;
@@ -194,7 +200,7 @@ void ServerManager::setupPostRoutes() {
         server.send(200, "text/plain", "Arquivo recebido!");
       },
       [this]() {
-        if (handleFileUpload(server.upload())) {
+        if (!handleFileUpload(server.upload())) {
           server.send(500, "text/plain", "Erro ao salvar arquivo.");
         }
       });
@@ -202,59 +208,123 @@ void ServerManager::setupPostRoutes() {
 
 void ServerManager::setupStaticRoutes() {
   server.on("/", HTTP_GET, [this]() {
-    handleFileRead("/dist/index.html.gz");
+    handleFileRead("/index.html.gz");
   });
 
   server.on("/sendfiles", HTTP_GET, [this]() {
     server.send(200, "text/html", R"rawliteral(
-          <!DOCTYPE html>
-          <html lang="pt-BR">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Upload de Arquivo</title>
-              <style>
-                  body { font-family: Arial, sans-serif; margin: 30px; }
-                  h1 { color: #333; margin-bottom: 10px; }
-                  form { margin-top: 20px; text-align: left; }
-                  input, button { margin-top: 10px; display: block; }
-              </style>
-          </head>
-          <body>
-              <h1>Enviar Arquivo para ESP32</h1>
-              <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-                  <input type="file" name="file" required>
-                  <button type="submit">Enviar</button>
-              </form>
-              <button onclick="fetch('/unpack')">Descompactar</button>
-              <button onclick="fetch('/deletedist')">Apagar Dist</button>
-          </body>
-          </html>
-      )rawliteral");
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Upload de Arquivo</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 30px;
+                background-color: #f4f4f4;
+                color: #333;
+            }
+            h1 {
+                color: #444;
+                text-align: center;
+            }
+            form {
+                background: white;
+                margin:auto;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                max-width: 400px;
+            }
+            input[type="file"], button {
+                margin-top: 10px;
+                width: 100%;
+                padding: 10px;
+                font-size: 16px;
+            }
+            #response {
+                margin-top: 20px;
+                text-align: center;
+                justify-content: center;
+                padding: 10px;
+                border-radius: 5px;
+                background-color: #e0e0e0;
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Enviar Arquivo para ESP32</h1>
+        <form id="uploadForm">
+            <input type="file" name="file" id="fileInput" required>
+            <button type="submit">Enviar</button>
+        </form>
+        <div id="response"></div>
+
+        <script>
+            const form = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('fileInput');
+            const responseDiv = document.getElementById('response');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const file = fileInput.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const res = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const text = await res.text();
+                    responseDiv.textContent = text;
+                    responseDiv.style.display = 'block';
+                } catch (err) {
+                    responseDiv.textContent = 'Erro ao enviar o arquivo.';
+                    responseDiv.style.display = 'block';
+                }
+            });
+        </script>
+    </body>
+    </html>
+  )rawliteral");
   });
 }
 
 void ServerManager::setupNotFoundHandler() {
   server.onNotFound([this]() {
     String path = server.uri();
-    if (path.endsWith(".ico") || path.endsWith(".png"))
-      handleFileRead("/dist" + path);
-    else
-      handleFileRead("/dist" + path + ".gz");
-    return;
+
+    // Tenta .gz primeiro, se não for imagem
+    if (!path.endsWith(".ico") && !path.endsWith(".png")) {
+      String gzPath = path + ".gz";
+      if (fm.exists(gzPath)) {
+        handleFileRead(gzPath);
+        return;
+      }
+    }
+
+    handleFileRead(path);
   });
 }
 
 void ServerManager::handleFileRead(String filePath) {
   File file = fm.getFile(filePath.c_str(), "r");
-  String contentType = utils.getContentType(filePath);
-
-  if (filePath.endsWith(".gz")) {
-    contentType = utils.getContentType(filePath.substring(0, filePath.length() - 3));
-    server.sendHeader("Content-Encoding", "gzip");
-  }
+  String contentType = utils.getContentType(
+      filePath.endsWith(".gz")
+          ? filePath.substring(0, filePath.length() - 3)
+          : filePath);
 
   if (file) {
+    if (filePath.endsWith(".gz")) {
+      // server.sendHeader("Content-Encoding", "gzip");
+    }
     server.streamFile(file, contentType);
     file.close();
     serial.log(LOG_INFO, "[ServerManager] Arquivo enviado: ", filePath.c_str());

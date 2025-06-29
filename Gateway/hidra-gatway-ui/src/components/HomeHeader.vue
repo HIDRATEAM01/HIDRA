@@ -3,7 +3,7 @@
     <v-row>
       <v-col cols="2">
         <img
-          :src="require('@/assets/android-chrome-192x192.png')"
+          :src="require('@/assets/hidra-logo.png')"
           alt="HIDRA"
           style="height: 100px; border-radius: 50%"
         />

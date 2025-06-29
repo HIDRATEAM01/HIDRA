@@ -31,10 +31,10 @@ export const useWifiStore = defineStore("wifi", () => {
     status.value = data.status === 1;
 
     wifiDialogStore.setConnected({
-      ssid: "wifi-teste",
-      rssi: "-30db",
-      ip: "192.168.4.1",
-      status: true,
+      ssid: ssid.value,
+      rssi: rssi.value,
+      ip: ip.value,
+      status: status.value,
     });
   }
 

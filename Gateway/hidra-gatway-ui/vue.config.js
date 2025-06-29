@@ -11,6 +11,16 @@ module.exports = {
     });
   },
 
+  pluginOptions: {
+    compressionOptions: {
+      algorithm: "gzip",
+      ext: ".gz",
+      treshold: 0,
+      deleteOriginalAssets: false,
+      test: /\.(js|css|html|svg)$/,
+    },
+  },
+
   configureWebpack: {
     output: {
       filename: "[name].js",
