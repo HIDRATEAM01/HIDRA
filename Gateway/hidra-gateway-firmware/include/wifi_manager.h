@@ -8,6 +8,7 @@
 #include <WiFiMulti.h>
 
 #include "serial_manager.h"
+#include "store_manager.h"
 
 class WiFiManager {
   public:
@@ -30,9 +31,11 @@ class WiFiManager {
   bool isAccessPointActive();
 
   String getConnectedSSID();
+  int getConnectedRSSI();
   IPAddress getWiFiIP();
   IPAddress getAPIP();
-  int getSignalStrength();
+  String getAPSSID();
+  String getAPPassword();
 
   String scanNetworks();
   bool connectToNetwork(const String &ssid, const String &pass);
@@ -53,5 +56,7 @@ class WiFiManager {
 
   const char *hostName;
 };
+
+extern WiFiManager wm;
 
 #endif

@@ -29,6 +29,7 @@ void WiFiManager::updateWiFiMode() {
 
 void WiFiManager::addNetwork(const char *ssid, const char *password) {
   wifiMulti.addAP(ssid, password);
+  wifiStore.addSavedNetwork(ssid, password);
   serial.log(LOG_INFO, "[WiFiManager] Rede WiFi adicionada: ", ssid);
 }
 
@@ -107,20 +108,28 @@ String WiFiManager::getConnectedSSID() {
   return WiFi.SSID();
 }
 
+int WiFiManager::getConnectedRSSI() {
+  if (WiFi.status() != WL_CONNECTED) return 0;
+
+  return WiFi.RSSI();
+}
+
 IPAddress WiFiManager::getWiFiIP() {
   if (WiFi.status() != WL_CONNECTED) return IPAddress(0, 0, 0, 0);
 
   return WiFi.localIP();
 }
 
-int WiFiManager::getSignalStrength() {
-  if (WiFi.status() != WL_CONNECTED) return 0;
-
-  return WiFi.RSSI();
-}
-
 IPAddress WiFiManager::getAPIP() {
   return apIP;
+}
+
+String WiFiManager::getAPSSID() {
+  return apSSID;
+}
+
+String WiFiManager::getAPPassword() {
+  return apPassword;
 }
 
 String WiFiManager::scanNetworks() {
@@ -129,11 +138,11 @@ String WiFiManager::scanNetworks() {
   serial.log(LOG_INFO, "[WiFiManager] Scan finalizado. Quantidade: ", String(n).c_str());
 
   JsonDocument doc;
-  doc["quantidade"] = n;
-  JsonArray networks = doc["redes"].to<JsonArray>();
+  JsonArray near = doc["near"].to<JsonArray>();
 
   for (int i = 0; i < n; i++) {
-    JsonObject network = networks.add<JsonObject>();
+    JsonObject network = near.add<JsonObject>();
+    network["id"] = i;
     network["ssid"] = WiFi.SSID(i);
     network["rssi"] = WiFi.RSSI(i);
   }

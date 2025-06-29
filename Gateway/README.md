@@ -34,7 +34,8 @@ Retorna informações da conexão wi-fi, como nome da rede, ip do dispositivo e 
 {
   "ssid": "wifi-teste",
   "rssi": "-30db",
-  "ip": "192.168.4.1"
+  "ip": "192.168.4.1",
+  "status": 1
 }
 ```
 
@@ -65,7 +66,8 @@ Retorna o status com os dados do webserver, conteúdo similar à:
 {
   "ssid": "hidra",
   "pass": "hidra1234",
-  "ip": "192.168.4.1"
+  "ip": "192.168.4.1",
+  "status": 1
 }
 ```
 
@@ -81,6 +83,7 @@ Retorna informação dos módulos conectados a este gateway
       "name": "rio azul 2",
       "recieve-date": "2025-23-06",
       "recieve-time": "14:19:00",
+      "address": "123",
       "bat": 45
     },
     {
@@ -88,6 +91,7 @@ Retorna informação dos módulos conectados a este gateway
       "name": "rio mais verde",
       "recieve-date": "2025-23-06",
       "recieve-time": "12:29:00",
+      "address": "456",
       "bat": 36
     }
   ]
@@ -106,6 +110,7 @@ Retorna últimas leituras de um módulo específico conectado a este gateway
   "recieve-time": "14:19:00",
   "module-date": "2025-23-06",
   "module-time": "14:19:00",
+  "address": "123",
   "bat": 45,
   "sensors": [
     {
@@ -127,6 +132,26 @@ Retorna últimas leituras de um módulo específico conectado a este gateway
       "value": 3741
     }
   ]
+}
+```
+
+##### [POST] /wifi/toggle
+
+Liga ou desliga o wifi
+
+```json
+{
+  "status": 0
+}
+```
+
+##### [POST] /server/toggle
+
+Liga ou desliga o servidor AcessPoint
+
+```json
+{
+  "status": 0
 }
 ```
 
