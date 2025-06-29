@@ -1,18 +1,76 @@
-import "@mdi/font/css/materialdesignicons.css";
 import { createVuetify } from "vuetify";
-import { aliases, mdi } from "vuetify/iconsets/mdi";
+import { h } from "vue";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import "vuetify/styles";
+
+import {
+  mdiLan,
+  mdiWifi,
+  mdiCog,
+  mdiCheck,
+  mdiEye,
+  mdiEyeOff,
+  mdiPencil,
+  mdiClose,
+  mdiRefresh,
+  mdiWifiRemove,
+  mdiWifiStrengthOutline,
+  mdiWifiStrength1,
+  mdiWifiStrength2,
+  mdiWifiStrength3,
+  mdiWifiStrength4,
+  mdiLogout,
+  mdiDelete,
+  mdiDotsVertical,
+  mdiButtonPointer,
+} from "@mdi/js";
+
+const customIcons = {
+  "mdi-lan": mdiLan,
+  "mdi-wifi": mdiWifi,
+  "mdi-cog": mdiCog,
+  "mdi-check": mdiCheck,
+  "mdi-eye": mdiEye,
+  "mdi-eye-off": mdiEyeOff,
+  "mdi-pencil": mdiPencil,
+  "mdi-close": mdiClose,
+  "mdi-refresh": mdiRefresh,
+  "mdi-wifi-remove": mdiWifiRemove,
+  "mdi-wifi-strength-outline": mdiWifiStrengthOutline,
+  "mdi-wifi-strength-1": mdiWifiStrength1,
+  "mdi-wifi-strength-2": mdiWifiStrength2,
+  "mdi-wifi-strength-3": mdiWifiStrength3,
+  "mdi-wifi-strength-4": mdiWifiStrength4,
+  "mdi-logout": mdiLogout,
+  "mdi-delete": mdiDelete,
+  "mdi-dots-vertical": mdiDotsVertical,
+  "mdi-button-pointer": mdiButtonPointer,
+};
 
 export default createVuetify({
   components,
   directives,
   icons: {
     defaultSet: "mdi",
-    aliases,
     sets: {
-      mdi,
+      mdi: {
+        component: (props) =>
+          h(
+            "svg",
+            {
+              class: "v-icon__svg",
+              xmlns: "http://www.w3.org/2000/svg",
+              viewBox: "0 0 24 24",
+              fill: "currentColor",
+              style: {
+                width: "1em",
+                height: "1em",
+              },
+            },
+            [h("path", { d: customIcons[props.icon] })]
+          ),
+      },
     },
   },
   theme: {

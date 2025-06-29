@@ -1,7 +1,27 @@
-const { defineConfig } = require("@vue/cli-service");
-module.exports = defineConfig({
+module.exports = {
   transpileDependencies: true,
-  define: {
-    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: true,
+  filenameHashing: false,
+  assetsDir: "",
+  productionSourceMap: false,
+
+  chainWebpack: (config) => {
+    // Ajusta o loader das imagens para gerar na raiz sem hash
+    config.module.rule("images").set("generator", {
+      filename: "[name][ext]",
+    });
   },
-});
+
+  configureWebpack: {
+    output: {
+      filename: "[name].js",
+      chunkFilename: "[name].js",
+    },
+  },
+
+  css: {
+    extract: {
+      filename: "[name].css",
+      chunkFilename: "[name].css",
+    },
+  },
+};

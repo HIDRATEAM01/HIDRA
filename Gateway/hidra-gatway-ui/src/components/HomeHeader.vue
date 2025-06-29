@@ -3,8 +3,8 @@
     <v-row>
       <v-col cols="2">
         <img
-          :src="require('@/assets/globo.png')"
-          alt="globo"
+          :src="require('@/assets/android-chrome-192x192.png')"
+          alt="HIDRA"
           style="height: 100px; border-radius: 50%"
         />
       </v-col>

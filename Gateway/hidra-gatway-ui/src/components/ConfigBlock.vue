@@ -1,7 +1,7 @@
 <template>
   <v-card position="relative" style="width: 350px">
     <v-card-title class="mr-3">
-      <v-icon v-if="icon" :icon="icon" size="medium" class="mr-2 mb-1" />
+      <v-icon v-if="icon" :icon="icon" size="small" class="mr-2 mb-1" />
       {{ title }}
     </v-card-title>
     <v-card-text>
