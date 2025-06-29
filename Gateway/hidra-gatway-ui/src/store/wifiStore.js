@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 
 import { useNotificationStore } from "@/store/notificationStore";
+import { useWifiDialogStore } from "./wifiDialogStore";
 import { getWifiStatus, postWifiStatus } from "@/services/wifiService";
 import { ref } from "vue";
 
@@ -8,18 +9,34 @@ export const useWifiStore = defineStore("wifi", () => {
   const ssid = ref("");
   const rssi = ref("");
   const ip = ref("");
-  const status = ref("");
+  const status = ref(false);
 
   const loading = ref(false);
   const error = ref(null);
 
   const notificationStore = useNotificationStore();
+  const wifiDialogStore = useWifiDialogStore();
 
+  // Fields in home page
   const fields = [
     { name: "ssid", label: "Rede", model: ssid },
     { name: "rssi", label: "Sinal", model: rssi },
     { name: "ip", label: "IP", model: ip },
   ];
+
+  function fillData(data) {
+    ssid.value = data.ssid || "Desconectado";
+    rssi.value = data.rssi ? `${data.rssi} db` : "Desconectado";
+    ip.value = data.ip || "Desconectado";
+    status.value = data.status === 1;
+
+    wifiDialogStore.setConnected({
+      ssid: "wifi-teste",
+      rssi: "-30db",
+      ip: "192.168.4.1",
+      status: true,
+    });
+  }
 
   // #region requests
   async function toggleWifi() {
@@ -65,10 +82,7 @@ export const useWifiStore = defineStore("wifi", () => {
       }
 
       const data = await response.data;
-      ssid.value = data.ssid;
-      rssi.value = data.rssi;
-      ip.value = data.ip;
-      status.value = data.status == 1;
+      fillData(data);
     } catch (err) {
       error.value = "Erro ao carregar Configurações do Wifi.";
       notificationStore.raise(error.value, "error", err.message);
@@ -84,8 +98,7 @@ export const useWifiStore = defineStore("wifi", () => {
   };
 
   const secondaryClick = () => {
-    // TODO: Open Networks Dialog
-    notificationStore.raise("Funcionalidade ainda não implementada.", "info");
+    wifiDialogStore.showDialog = true;
   };
   // #endregion
 

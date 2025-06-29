@@ -80,7 +80,7 @@ if ($method === 'GET') {
     } elseif ($uri === '/wifi/status') {
         echo json_encode([
             "ssid" => "wifi-teste",
-            "rssi" => "-30db",
+            "rssi" => "-30",
             "ip" => "192.168.4.1",
             "status" => $wifiStatus
         ]);
@@ -89,13 +89,28 @@ if ($method === 'GET') {
             "saved" => [
                 ["id" => 0, "ssid" => "rede 1", "pass" => "********"],
                 ["id" => 1, "ssid" => "rede 2", "pass" => "********"],
-                ["id" => 2, "ssid" => "rede 3", "pass" => "********"]
+                ["id" => 2, "ssid" => "rede D", "pass" => "********"],
+                ["id" => 3, "ssid" => "rede 3", "pass" => "********"],
+                ["id" => 4, "ssid" => "rede F", "pass" => "********"],
             ],
             "near" => [
                 ["id" => 0, "ssid" => "rede A", "rssi" => "-80"],
-                ["id" => 0, "ssid" => "rede B", "rssi" => "-90"],
-                ["id" => 0, "ssid" => "rede C", "rssi" => "-96"]
+                ["id" => 1, "ssid" => "rede B", "rssi" => "-90"],
+                ["id" => 2, "ssid" => "rede C", "rssi" => "-96"],
+                ["id" => 3, "ssid" => "rede D", "rssi" => "-70"],
+                ["id" => 4, "ssid" => "rede E", "rssi" => "-85"],
+                ["id" => 5, "ssid" => "rede F", "rssi" => "-60"],
+                ["id" => 6, "ssid" => "rede G", "rssi" => "-75"],
+                ["id" => 7, "ssid" => "rede H", "rssi" => "-67"],
+                ["id" => 8, "ssid" => "rede I", "rssi" => "-88"],
+                ["id" => 9, "ssid" => "rede J", "rssi" => "-92"],
+                ["id" => 10, "ssid" => "rede K", "rssi" => "-43"],
+                ["id" => 11, "ssid" => "rede L", "rssi" => "-78"],
+                ["id" => 12, "ssid" => "rede M", "rssi" => "-66"],
+                ["id" => 13, "ssid" => "rede N", "rssi" => "-82"],
+                ["id" => 14, "ssid" => "rede O", "rssi" => "-59"]
             ]
+
         ]);
     } elseif ($uri === '/server/config') {
         echo json_encode([
@@ -128,6 +143,7 @@ if ($method === 'GET') {
     $input = json_decode(file_get_contents("php://input"), true);
 
     if ($uri === '/wifi/connect') {
+        sleep(1);
         echo json_encode(["status" => "connecting", "input" => $input]);
     } elseif ($uri === '/wifi/toggle') {
         $wifiStatus = $input["status"];

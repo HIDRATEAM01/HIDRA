@@ -8,6 +8,7 @@
       </v-col>
     </v-row>
     <ModuleRow />
+    <WifiDialog />
   </v-container>
 </template>
 
@@ -16,9 +17,10 @@
 import HomeHeader from "@/components/HomeHeader.vue";
 import ConfigRow from "@/components/ConfigRow.vue";
 import ModuleRow from "@/components/ModuleRow.vue";
+import WifiDialog from "@/components/WifiDialog.vue";
 
 export default {
   name: "HomeView",
-  components: { ModuleRow, HomeHeader, ConfigRow },
+  components: { ModuleRow, HomeHeader, ConfigRow, WifiDialog },
 };
 </script>

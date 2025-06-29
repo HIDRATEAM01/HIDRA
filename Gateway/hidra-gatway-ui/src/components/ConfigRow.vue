@@ -61,8 +61,8 @@ export default {
 
     onMounted(async () => {
       await Promise.all([
-        wifiStore.fetch(),
         serverStore.fetch(),
+        wifiStore.fetch(),
         configStore.fetch(),
       ]);
     });

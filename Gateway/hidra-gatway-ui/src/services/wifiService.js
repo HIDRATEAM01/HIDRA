@@ -4,7 +4,6 @@ export function getWifiStatus() {
   return api.get("/wifi/status");
 }
 
-//TODO: Add store function to get the current wifi network list
 export function getWifiNetworks() {
   return api.get("/wifi/networks");
 }
@@ -17,7 +16,6 @@ export function postWifiStatus(config) {
   });
 }
 
-//TODO: Add store function to save the current wifi network
 export function postWifiConnect(config) {
   return api.post("/wifi/connect", config, {
     headers: {
