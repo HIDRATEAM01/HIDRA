@@ -16,6 +16,22 @@ void InternalClock::setClockByServer() {
   serial.log(LOG_INFO, "[InternalClock] Relógio configurado: ", getClock(DH).c_str());
 }
 
+void InternalClock::setClockByString(String date, String time) {
+  int day, month, year, hour, minute, second;
+
+  if (sscanf(date.c_str(), "%d/%d/%d", &day, &month, &year) != 3) {
+    Serial.println("Erro ao analisar a data.");
+    return;
+  }
+
+  if (sscanf(time.c_str(), "%d:%d:%d", &hour, &minute, &second) != 3) {
+    Serial.println("Erro ao analisar a hora.");
+    return;
+  }
+
+  setClock(day, month, year, hour, minute, second);
+}
+
 void InternalClock::setClock(int day, int month, int year, int hour, int minute, int second) {
   struct tm timeinfo;
   timeinfo.tm_year = year - 1900;  // Ano - 1900

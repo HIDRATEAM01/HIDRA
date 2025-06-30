@@ -21,11 +21,12 @@ class WiFiManager {
 
   void startAccessPoint();
   void stopAccessPoint();
-  void setAcessPoint(const char *ssid,
-                     const char *password,
-                     IPAddress localIP = IPAddress(192, 168, 4, 1),
-                     IPAddress gateway = IPAddress(192, 168, 4, 1),
-                     IPAddress subnet = IPAddress(255, 255, 255, 0));
+  void restartAccessPoint();
+  void setAccessPoint(const char *ssid,
+                      const char *password,
+                      IPAddress localIP = IPAddress(192, 168, 4, 1),
+                      IPAddress gateway = IPAddress(192, 168, 4, 1),
+                      IPAddress subnet = IPAddress(255, 255, 255, 0));
 
   bool isWiFiConnected();
   bool isAccessPointActive();

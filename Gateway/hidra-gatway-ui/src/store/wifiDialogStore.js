@@ -24,7 +24,6 @@ export const useWifiDialogStore = defineStore("wifiDialog", () => {
       rssi: parseFloat(data.rssi.replace("db", "")),
       ip: data.ip,
       status: data.status,
-      isConnected: true,
     };
 
     networks.value = networks.value.filter((n) => n.ssid !== data.ssid);

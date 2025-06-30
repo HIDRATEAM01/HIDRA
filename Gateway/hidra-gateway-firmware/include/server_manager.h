@@ -31,8 +31,9 @@ class ServerManager {
   void setupPostRoutes();
   void setupStaticRoutes();
   void setupNotFoundHandler();
-  void handleFileRead(String path);
-  bool handleFileUpload(HTTPUpload &upload);
+  bool handleFileRead(String &filePath);
+  bool handlePostPayload(JsonDocument &doc);
+  String handleFileUpload(HTTPUpload &upload);
 };
 
 #endif

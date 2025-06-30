@@ -131,11 +131,8 @@ export default {
     });
 
     const tryConnect = () => {
-      if (props.network.isSaved) {
-        wifiDialogStore.tryConnect(props.network.ssid, password.value);
-      } else {
-        wifiDialogStore.tryConnect(props.network.ssid, password.value);
-      }
+      wifiDialogStore.tryConnect(props.network.ssid, password.value);
+      showField.value = !showField.value;
     };
 
     const disconnect = () => {

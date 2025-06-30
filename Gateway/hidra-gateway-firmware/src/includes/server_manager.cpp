@@ -40,15 +40,8 @@ void ServerManager::setupRoutes() {
   setupNotFoundHandler();
 }
 
+// TODO: Adicionar funções static
 void ServerManager::setupGetRoutes() {
-  server.on("/deletedist", HTTP_GET, [this]() {
-    serial.log(LOG_INFO, "[ServerManager] Iniciando remoção do dist.tar.gz");
-    if (fm.removeRecursive("/dist.tar.gz"))
-      raiseSucess("Arquivo removido com sucesso!");
-    else
-      raiseError("Erro ao remover arquivo.");
-  });
-
   server.on("/config", HTTP_GET, [this]() {
     JsonDocument doc;
     doc["date"] = rtc.getClock(DD);
@@ -99,7 +92,7 @@ void ServerManager::setupGetRoutes() {
 
     String jsonOutput;
     serializeJson(doc, jsonOutput);
-    serial.log(LOG_INFO, "[ServerManager] [/wifi/networks]: Sucesso. JSON: ", jsonOutput.c_str());
+    serial.log(LOG_INFO, "[ServerManager] [/wifi/networks]: Sucesso.");
     server.send(200, "application/json", jsonOutput);
   });
 
@@ -162,7 +155,7 @@ void ServerManager::setupGetRoutes() {
           },
           {
             "id": 5,
-            "name": "bairro do sol nascente",
+            "name": "bairro do sol",
             "recieve-date": "2025-23-06",
             "recieve-time": "10:58:00",
             "address": "987",
@@ -170,7 +163,7 @@ void ServerManager::setupGetRoutes() {
           },
           {
             "id": 6,
-            "name": "estrada das palmeiras",
+            "name": "estrada verde",
             "recieve-date": "2025-23-06",
             "recieve-time": "09:37:00",
             "address": "159",
@@ -197,18 +190,137 @@ void ServerManager::setupPostRoutes() {
   server.on(
       "/upload", HTTP_POST,
       [this]() {
-        server.send(200, "text/plain", "Arquivo recebido!");
+        server.send(200, "text/plain", "Arquivo recebido com sucesso de forma completa!");
       },
       [this]() {
-        if (!handleFileUpload(server.upload())) {
+        String result = handleFileUpload(server.upload());
+        if (result == "") {
           server.send(500, "text/plain", "Erro ao salvar arquivo.");
+        } else if (result != "START" && result != "IN_PROGRESS") {
+          server.send(200, "text/plain", "Arquivo recebido: " + result);
         }
       });
+
+  server.on("/wifi/toggle", HTTP_POST, [this]() {
+    if (!server.hasArg("plain")) {
+      raiseError("Conteúdo ausente.");
+      return;
+    }
+
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, server.arg("plain"));
+    if (error) {
+      raiseError("Falha ao analisar JSON.");
+      return;
+    }
+
+    int status = doc["status"].as<int>();
+    if (status == 1)
+      wm.autoConnectWiFi();
+    else if (status == 0)
+      wm.disconnectWiFi();
+    else {
+      raiseError("Status inválido.");
+      return;
+    }
+
+    server.send(200, "text/plain", "{\"novo status\": " + String(status) + "}");
+    serial.log(LOG_INFO, "[ServerManager] [/wifi/toggle]: Sucesso. Novo status: ", String(status).c_str());
+  });
+
+  server.on("/server/toggle", HTTP_POST, [this]() {
+    if (!server.hasArg("plain")) {
+      raiseError("Conteúdo ausente.");
+      return;
+    }
+
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, server.arg("plain"));
+    if (error) {
+      raiseError("Falha ao analisar JSON.");
+      return;
+    }
+
+    int status = doc["status"];
+    if (status == 1)
+      wm.startAccessPoint();
+    else if (status == 0)
+      wm.stopAccessPoint();
+    else {
+      raiseError("Status inválido.");
+      return;
+    }
+
+    server.send(200, "text/plain", "{\"novo status\": " + String(status) + "}");
+    serial.log(LOG_INFO, "[ServerManager] [/server/toggle]: Sucesso. Novo status: ", String(status).c_str());
+  });
+
+  // TODO: Corrigir método de adição de rede WiFi
+  server.on("/wifi/add", HTTP_POST, [this]() {
+    JsonDocument doc;
+    if (!handlePostPayload(doc)) return;
+
+    String ssid = doc["ssid"].as<String>();
+    String password = doc["password"].as<String>();
+
+    if (ssid.isEmpty()) {
+      raiseError("SSID ausente.");
+      return;
+    }
+
+    wifiStore.addSavedNetwork(ssid, password);
+    server.send(200, "text/plain", "Rede adicionada com sucesso.");
+    serial.log(LOG_INFO, "[ServerManager] [/wifi/add]: Sucesso. SSID: ", ssid.c_str());
+  });
+
+  server.on("/config/time", HTTP_POST, [this]() {
+    JsonDocument doc;
+    if (!handlePostPayload(doc)) return;
+
+    String date = doc["date"].as<String>();
+    String time = doc["time"].as<String>();
+
+    if (date.isEmpty() || time.isEmpty()) {
+      raiseError("Data ou hora ausente.");
+      return;
+    }
+
+    rtc.setClockByString(date, time);
+
+    server.send(200, "text/plain", "Hora configurada com sucesso.");
+    serial.log(LOG_INFO, "[ServerManager] [/config/time]: Sucesso. Data: ", date.c_str(), " Hora: ", time.c_str());
+  });
+
+  server.on("/server/config", HTTP_POST, [this]() {
+    JsonDocument doc;
+    if (!handlePostPayload(doc)) return;
+
+    String ssid = doc["ssid"].as<String>();
+    String password = doc["pass"].as<String>();
+    if (ssid.isEmpty()) {
+      raiseError("SSID ausente.");
+      return;
+    }
+    if (ssid.length() < 3 || ssid.length() > 16) {
+      raiseError("SSID deve ter entre 3 e 16 caracteres.");
+      return;
+    }
+    if (password.length() < 8 || password.length() > 16) {
+      raiseError("Senha deve ter entre 8 e 16 caracteres.");
+      return;
+    }
+    wm.setAccessPoint(ssid.c_str(), password.c_str());
+    wm.restartAccessPoint();
+
+    server.send(200, "text/plain", "Configuração do servidor atualizada com sucesso.");
+    serial.log(LOG_INFO, "[ServerManager] [/server/config]: Sucesso. SSID: ", ssid.c_str(), " Senha: ", password.c_str());
+  });
 }
 
 void ServerManager::setupStaticRoutes() {
   server.on("/", HTTP_GET, [this]() {
-    handleFileRead("/index.html.gz");
+    String indexPath = "/index.html.gz";
+    handleFileRead(indexPath);
   });
 
   server.on("/sendfiles", HTTP_GET, [this]() {
@@ -283,10 +395,10 @@ void ServerManager::setupStaticRoutes() {
                     });
 
                     const text = await res.text();
-                    responseDiv.textContent = text;
+                    responseDiv.innerHTML += `<div>${text}</div>`;
                     responseDiv.style.display = 'block';
                 } catch (err) {
-                    responseDiv.textContent = 'Erro ao enviar o arquivo.';
+                    responseDiv.innerHTML += `<div>Erro ao enviar o arquivo.</div>`;
                     responseDiv.style.display = 'block';
                 }
             });
@@ -301,39 +413,52 @@ void ServerManager::setupNotFoundHandler() {
   server.onNotFound([this]() {
     String path = server.uri();
 
-    // Tenta .gz primeiro, se não for imagem
     if (!path.endsWith(".ico") && !path.endsWith(".png")) {
       String gzPath = path + ".gz";
-      if (fm.exists(gzPath)) {
-        handleFileRead(gzPath);
-        return;
-      }
+      if (handleFileRead(gzPath)) return;
     }
 
-    handleFileRead(path);
+    if (handleFileRead(path)) return;
+
+    server.send(404, "text/plain", "Arquivo não encontrado.");
+    serial.log(LOG_WARN, "[ServerManager] Requisição não atendida: ", path.c_str());
   });
 }
 
-void ServerManager::handleFileRead(String filePath) {
+bool ServerManager::handleFileRead(String &filePath) {
   File file = fm.getFile(filePath.c_str(), "r");
-  String contentType = utils.getContentType(
-      filePath.endsWith(".gz")
-          ? filePath.substring(0, filePath.length() - 3)
-          : filePath);
+  if (!file) return false;
 
-  if (file) {
-    if (filePath.endsWith(".gz")) {
-      // server.sendHeader("Content-Encoding", "gzip");
-    }
-    server.streamFile(file, contentType);
-    file.close();
-    serial.log(LOG_INFO, "[ServerManager] Arquivo enviado: ", filePath.c_str());
-  } else {
-    raiseError("Arquivo não encontrado.");
+  String contentType = utils.getContentType(
+      filePath.endsWith(".gz") ? filePath.substring(0, filePath.length() - 3) : filePath);
+
+  if (filePath.endsWith(".gz")) {
+    // server.sendHeader("Content-Encoding", "gzip");  //Aparentemente sendifles já envia o cabealho de codificação gzip
   }
+
+  server.streamFile(file, contentType);
+  file.close();
+
+  serial.log(LOG_INFO, "[ServerManager] Arquivo enviado: ", filePath.c_str());
+  return true;
 }
 
-bool ServerManager::handleFileUpload(HTTPUpload &upload) {
+bool ServerManager::handlePostPayload(JsonDocument &doc) {
+  if (!server.hasArg("plain")) {
+    raiseError("Conteúdo ausente.");
+    return false;
+  }
+
+  DeserializationError error = deserializeJson(doc, server.arg("plain"));
+  if (error) {
+    raiseError("Falha ao analisar JSON: " + String(error.c_str()));
+    return false;
+  }
+
+  return true;
+}
+
+String ServerManager::handleFileUpload(HTTPUpload &upload) {
   static String filename;
 
   if (upload.status == UPLOAD_FILE_START) {
@@ -342,22 +467,22 @@ bool ServerManager::handleFileUpload(HTTPUpload &upload) {
 
     if (!fm.createFile(filename)) {
       serial.log(LOG_ERROR, "[FileManager] Erro ao criar arquivo: ", filename.c_str());
-      return false;
+      return "";
     }
-
-    return true;
+    return "START";
   }
 
   if (upload.status == UPLOAD_FILE_WRITE) {
     if (!fm.writeToFile(filename, upload.buf, upload.currentSize)) {
       serial.log(LOG_ERROR, "[FileManager] Erro ao gravar no arquivo.");
-      return false;
+      return "";
     }
   }
 
   if (upload.status == UPLOAD_FILE_END) {
     serial.log(LOG_INFO, "[FileManager] Upload concluído: ", filename.c_str());
+    return filename;
   }
 
-  return true;
+  return "IN_PROGRESS";
 }

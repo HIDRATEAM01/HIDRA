@@ -16,6 +16,7 @@ class StoreManager {
   StoreManager();
   void begin(const char* ns);
 
+  // wifiStore
   void addSavedNetwork(const String& ssid, const String& password);
   std::vector<WifiCredential> getSavedNetworks();
   void removeSavedNetwork(int index);

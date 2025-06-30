@@ -1,3 +1,5 @@
+const webpack = require("webpack");
+
 module.exports = {
   transpileDependencies: true,
   filenameHashing: false,
@@ -5,7 +7,6 @@ module.exports = {
   productionSourceMap: false,
 
   chainWebpack: (config) => {
-    // Ajusta o loader das imagens para gerar na raiz sem hash
     config.module.rule("images").set("generator", {
       filename: "[name][ext]",
     });
@@ -26,6 +27,11 @@ module.exports = {
       filename: "[name].js",
       chunkFilename: "[name].js",
     },
+    plugins: [
+      new webpack.DefinePlugin({
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false",
+      }),
+    ],
   },
 
   css: {

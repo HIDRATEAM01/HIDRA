@@ -77,7 +77,7 @@
 </template>
 
 <script>
-import { onMounted, computed } from "vue";
+import { computed, watch } from "vue";
 import { useWifiDialogStore } from "@/store/wifiDialogStore";
 
 import WifiItem from "@/components/WifiItem.vue";
@@ -90,16 +90,21 @@ export default {
   setup: () => {
     const wifiDialogStore = useWifiDialogStore();
 
-    onMounted(async () => {
-      wifiDialogStore.fetch();
-    });
+    watch(
+      () => wifiDialogStore.showDialog,
+      (newValue) => {
+        if (newValue) {
+          wifiDialogStore.fetch();
+        }
+      }
+    );
 
     const showWifiNetwork = computed(() => {
-      return wifiDialogStore.connected && !wifiDialogStore.loadingNew;
+      return wifiDialogStore.connected.status && !wifiDialogStore.loadingNew;
     });
 
     const showSkeletonNetwork = computed(() => {
-      return wifiDialogStore.connected && wifiDialogStore.loadingNew;
+      return wifiDialogStore.loadingNew;
     });
 
     return {
