@@ -135,6 +135,25 @@ bool FileManager::removeRecursive(const char *path) {
   return FILE_SYSTEM.rmdir(path);
 }
 
+bool getEncryptionFile(JsonDocument &doc, const char *path) {
+  File file = FILE_SYSTEM.open(path, "r");
+  if (!file) {
+    serial.log(LOG_ERROR, "[FileManager] Falha ao abrir arquivo de criptografia: ", path);
+    return false;
+  }
+
+  DeserializationError error = deserializeJson(doc, file);
+  file.close();
+
+  if (error) {
+    serial.log(LOG_ERROR, "[FileManager] Erro ao desserializar JSON: ", error.c_str());
+    return false;
+  }
+
+  serial.log(LOG_INFO, "[FileManager] Arquivo de criptografia carregado com sucesso: ", path);
+  return true;
+}
+
 void FileManager::end() {
   FILE_SYSTEM.end();
 }

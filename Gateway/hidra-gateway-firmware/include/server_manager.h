@@ -22,18 +22,21 @@ class ServerManager {
   void end();
 
   void raiseError(String errorMessage);
-  void raiseSucess(String sucessMessage);
+  void raiseSuccess(const char *route, String successMessage, bool minimal = false);
+
+  bool handleFileRead(String &filePath);
+  bool handlePostPayload(JsonDocument &doc);
+  String handleFileUpload(HTTPUpload &upload);
 
   private:
-  WebServer server;
+  WebServer webserver;
   void setupRoutes();
   void setupGetRoutes();
   void setupPostRoutes();
   void setupStaticRoutes();
   void setupNotFoundHandler();
-  bool handleFileRead(String &filePath);
-  bool handlePostPayload(JsonDocument &doc);
-  String handleFileUpload(HTTPUpload &upload);
 };
+
+extern ServerManager server;
 
 #endif
