@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}HIDRA - Cadastro{% endblock %}</title>
+
+    <!-- Adicionando Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="shortcut icon" type="image/png" href="{% static 'iotmonitor/assets/img/Hidra_logo.ico' %}" />
+    
+    <!-- CSS customizado -->
+    <link rel="stylesheet" href="{% static 'iotmonitor/assets/css/cadastro.css' %}">
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+    {% block content %}
+
+    <div class="login_form_wrapper">
+        <div class="container">
+            <!-- Logo movido para dentro do container com fundo azul -->
+            <div class="logo_container">
+                <img src="{% static 'iotmonitor/assets/img/Hidra_logo.ico' %}" alt="HIDRA Logo">
+            </div>
+            <div class="login_wrapper">
+                <h2>Criar nova conta</h2>
+
+                <div class="formsix-pos">
+                    <div class="form-group i-username">
+                        <input type="text" class="form-control" required="" id="username" placeholder="Nome de usuário">
+                    </div>
+                </div>
+
+                <div class="formsix-pos">
+                    <div class="form-group i-email">
+                        <input type="email" class="form-control" required="" id="email"
+                            placeholder="Endereço de e-mail">
+                    </div>
+                </div>
+
+                <div class="formsix-e">
+                    <div class="form-group i-password password-toggle">
+                        <input type="password" class="form-control" required="" id="password" placeholder="Senha">
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('password')">
+                            <img src="{% static 'iotmonitor/assets/img/senha_invisivel.png' %}" alt="Mostrar senha"
+                                id="toggle-icon-password">
+                        </button>
+                    </div>
+                </div>
+
+                <div class="formsix-e">
+                    <div class="form-group i-password-confirm password-toggle">
+                        <input type="password" class="form-control" required="" id="password_confirm"
+                            placeholder="Confirmar senha">
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('password_confirm')">
+                            <img src="{% static 'iotmonitor/assets/img/senha_invisivel.png' %}" alt="Mostrar senha"
+                                id="toggle-icon-password_confirm">
+                        </button>
+                    </div>
+                </div>
+
+                <div class="login_btn_wrapper">
+                    <a href="{% url 'login' %}" class="btn btn-primary login_btn">Cadastrar</a>
+                </div>
+
+                <!-- Botão do Google melhorado -->
+                <a href="#" class="google-signin-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" height="18" width="18">
+                        <path fill="#4285f4" d="M386 400c45-42 65-112 53-179H260v74h102c-4 24-18 44-38 57z"></path>
+                        <path fill="#34a853" d="M90 341a192 192 0 0 0 296 59l-62-48c-53 35-141 22-171-60z"></path>
+                        <path fill="#fbbc02" d="M153 292c-8-25-8-48 0-73l-63-49c-23 46-30 111 0 171z">
+                        </path>
+                        <path fill="#ea4335" d="M153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55z"></path>
+                    </svg>
+                    Cadastrar com o Google
+                </a>
+
+                <div class="login_message">
+                    <p>Já tem uma conta? <a href="{% url 'login' %}">Faça login</a></p>
+                </div>
+                <div class="login_message">
+                    <p>Voltar para a <a href="{% url 'homepage' %}">Página inicial</a></p>
+                </div>
+            </div>
+            <!-- /.login_wrapper-->
+        </div>
+    </div>
+
+    {% endblock %}
+
+    <!-- JavaScript customizado -->
+    <script src="{% static 'iotmonitor/assets/js/cadastro.js' %}"></script>
+
+</body>
+
+</html>
