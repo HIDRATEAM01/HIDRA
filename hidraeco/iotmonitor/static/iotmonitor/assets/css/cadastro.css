@@ -228,3 +228,140 @@ p {
     outline: none;
     opacity: 0.8;
 }
+
+/* Estilos para mensagens de erro/sucesso */
+.alert {
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.alert-error,
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.alert-info {
+    background-color: #cce7ff;
+    border-color: #b8daff;
+    color: #004085;
+}
+
+/* Estilos para validação de campos */
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+    color: #dc3545;
+}
+
+.invalid-feedback.d-block {
+    display: block;
+}
+
+/* Melhorar estilo do botão de envio */
+.login_btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.login_btn:hover {
+    background: linear-gradient(45deg, #0056b3, #003d82);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.login_btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Estilo para loading no botão */
+.login_btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.login_btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #fff;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Melhorar espaçamento */
+.formsix-pos,
+.formsix-e {
+    margin-bottom: 20px;
+}
+
+/* Estilo para campos com ícones */
+.form-group {
+    position: relative;
+}
+
+.form-group.has-success .form-control {
+    border-color: #28a745;
+}
+
+.form-group.has-error .form-control {
+    border-color: #dc3545;
+}
+
+/* Melhorar responsividade */
+@media (max-width: 768px) {
+    .login_form_wrapper {
+        padding: 20px 15px;
+    }
+    
+    .login_wrapper {
+        padding: 30px 20px;
+    }
+    
+    .logo_container img {
+        width: 60px;
+        height: 60px;
+    }
+}

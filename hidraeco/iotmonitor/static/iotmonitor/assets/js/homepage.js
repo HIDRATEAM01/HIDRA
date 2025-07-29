@@ -63,17 +63,119 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Contact form handling (example)
+    // Contact form handling
     const contactForm = document.querySelector('.contact-form form');
     if (contactForm) {
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // Add your form submission logic here
             alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
-            
-            // Reset form
             this.reset();
         });
+    }
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdownBtn = document.getElementById('userDropdownBtn');
+    const dropdownMenu = document.getElementById('userDropdownMenu');
+    let isDropdownOpen = false;
+
+    // Função para abrir dropdown
+    function openDropdown() {
+        dropdownMenu.classList.add('show');
+        isDropdownOpen = true;
+        
+        // Criar overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'dropdown-overlay active';
+        overlay.id = 'dropdownOverlay';
+        document.body.appendChild(overlay);
+        
+        // Fechar ao clicar no overlay
+        overlay.addEventListener('click', closeDropdown);
+    }
+
+    // Função para fechar dropdown
+    function closeDropdown() {
+        dropdownMenu.classList.remove('show');
+        isDropdownOpen = false;
+        
+        // Remover overlay
+        const overlay = document.getElementById('dropdownOverlay');
+        if (overlay) {
+            overlay.remove();
+        }
+    }
+
+    // Toggle dropdown ao clicar no botão
+    if (dropdownBtn) {
+        dropdownBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (isDropdownOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        });
+    }
+
+    // Fechar dropdown com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isDropdownOpen) {
+            closeDropdown();
+        }
+    });
+
+    // Logout functionality
+    const logoutLink = document.querySelector('.logout-link');
+    if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (confirm('Tem certeza que deseja sair?')) {
+                // Criar formulário para logout seguro
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = this.href;
+                
+                // Adicionar CSRF token se disponível
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken.value;
+                    form.appendChild(csrfInput);
+                } else {
+                    // Alternativa: buscar o token do cookie
+                    const csrfCookie = getCookie('csrftoken');
+                    if (csrfCookie) {
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = 'csrfmiddlewaretoken';
+                        csrfInput.value = csrfCookie;
+                        form.appendChild(csrfInput);
+                    }
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    // Função para obter cookie CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 });

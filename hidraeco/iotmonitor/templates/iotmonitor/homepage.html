@@ -17,12 +17,37 @@
                 <li><a href="#features">Funcionalidades</a></li>
                 <li><a href="#contact">Contato</a></li>
             </ul>
-
         </nav>
 
+        <!-- Header Actions com Dropdown Funcional -->
         <div class="header-actions d-flex align-items-center" style="gap: 16px;">
-            <a class="btn btn-outline-light" href="{% url 'login' %}">Login</a>
-            <a class="btn btn-outline-light" href="{% url 'cadastro' %}">Cadastre-se</a>
+            {% if user.is_authenticated %}
+            <!-- Dropdown do usuário logado -->
+            <div class="user-dropdown" style="position: relative;">
+                <button class="btn btn-outline-light dropdown-toggle-btn" type="button" id="userDropdownBtn">
+                    <i class="fas fa-user-circle"></i> {{ user.username }}
+                    <i class="fas fa-chevron-down ms-1" style="font-size: 12px;"></i>
+                </button>
+                
+                <div class="dropdown-menu-custom" id="userDropdownMenu">
+                    <a class="dropdown-item-custom" href="#" onclick="alert('Funcionalidade em desenvolvimento')">
+                        <i class="fas fa-user-cog"></i> Perfil
+                    </a>
+                    <div class="dropdown-divider-custom"></div>
+                    <a class="dropdown-item-custom logout-link" href="{% url 'logout' %}" data-logout="true">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <!-- Botões para usuários não logados -->
+            <a class="btn btn-outline-light" href="{% url 'login' %}">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a class="btn btn-outline-light" href="{% url 'cadastro' %}">
+                <i class="fas fa-user-plus"></i> Cadastre-se
+            </a>
+            {% endif %}
         </div>
 
         <a class="btn-getstarted" href="{% url 'dashboard' %}">Dashboard</a>
@@ -227,7 +252,7 @@
 </section>
 
 <!-- Partners Section -->
- <!--
+<!--
  <section id="partners" class="section"
     style="background: linear-gradient(135deg, #052c53 0%, #007bff 100%); color: white;">
     <div class="container">
@@ -239,7 +264,7 @@
     -->
 
 
-    <!-- Swiper -->
+<!-- Swiper -->
 
 <!-- </section>
 

@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -10,17 +11,19 @@
 
     <!-- Favicons -->
     <link rel="shortcut icon" type="image/png" href="{% static 'iotmonitor/assets/img/Hidra_logo.ico' %}" />
-    
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="{% static 'iotmonitor/lib/bootstrap.min.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'iotmonitor/assets/css/base.css' %}">
     {% block extra_css %}{% endblock %}
@@ -48,6 +51,39 @@
         </div>
     </header>
     {% endblock %}
+
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            {% if message.tags == 'success' %}
+            <i class="fas fa-check-circle me-2"></i>
+            {% elif message.tags == 'error' %}
+            <i class="fas fa-exclamation-circle me-2"></i>
+            {% elif message.tags == 'warning' %}
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {% else %}
+            <i class="fas fa-info-circle me-2"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Auto-hide messages after 5 seconds -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = document.querySelectorAll('.messages-container .alert');
+            alerts.forEach(function (alert) {
+                setTimeout(function () {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+    {% endif %}
 
     <main class="main">
         {% block content %}{% endblock %}
@@ -94,16 +130,17 @@
                     </ul>
                 </div>
 
-                <div class="col-lg-4 col-md-12 footer-newsletter" style ="text-align: justify;">
+                <div class="col-lg-4 col-md-12 footer-newsletter" style="text-align: justify;">
                     <h4>Sobre o HIDRA</h4>
                     <p>Sistema completo de monitoramento IoT para coleta e análise de dados dos canais a céu aberto na
-                    Região Metropolitana do Recife.</p>
+                        Região Metropolitana do Recife.</p>
                 </div>
             </div>
         </div>
 
         <div class="container copyright text-center mt-4">
-            <p>© <span>Copyright</span> <strong class="px-1 sitename">HIDRA</strong> <span>Todos os Direitos Reservados</span></p>
+            <p>© <span>Copyright</span> <strong class="px-1 sitename">HIDRA</strong> <span>Todos os Direitos
+                    Reservados</span></p>
             <div class="credits">
                 Sistema de Monitoramento IoT
             </div>
@@ -117,13 +154,17 @@
     </a>
 
     <!-- JavaScript Files -->
-    <script src="{% static 'js/awesome_django_timezones.js' %}"></script>
-    <script src="{% static 'iotmonitor/lib/jquery-3.5.1.slim.min.js' %}" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="{% static 'iotmonitor/lib/bootstrap.min.js' %}" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script src="{% static 'iotmonitor/lib/jquery-3.5.1.slim.min.js' %}"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="{% static 'iotmonitor/lib/bootstrap.min.js' %}"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    
+
     <!-- Custom JavaScript -->
     <script src="{% static 'iotmonitor/assets/js/base.js' %}"></script>
     {% block extra_scripts %}{% endblock %}
 </body>
+
 </html>

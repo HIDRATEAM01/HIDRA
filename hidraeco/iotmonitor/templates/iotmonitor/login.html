@@ -26,34 +26,55 @@
             </div>
             <div class="login_wrapper">
                 <h2>Entrar na conta</h2>
-                <div class="formsix-pos">
-                    <div class="form-group i-email">
-                        <input type="email" class="form-control" required="" id="email2"
-                            placeholder="Endereço de e-mail">
+                
+                <!-- Exibir mensagens de erro/sucesso -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Form de login -->
+                <form method="post" id="loginForm">
+                    {% csrf_token %}
+                    
+                    <div class="formsix-pos">
+                        <div class="form-group i-email">
+                            <input type="email" class="form-control" required="" name="email" id="email2"
+                                placeholder="Endereço de e-mail" value="{{ request.POST.email }}">
+                        </div>
                     </div>
-                </div>
-                <div class="formsix-e">
-                    <div class="form-group i-password password-toggle">
-                        <input type="password" class="form-control" required="" id="password2" placeholder="Senha">
-                        <button type="button" class="password-toggle-btn" onclick="togglePassword('password2')">
-                            <img src="{% static 'iotmonitor/assets/img/senha_invisivel.png' %}" alt="Mostrar senha"
-                                id="toggle-icon-password2">
-                        </button>
+                    
+                    <div class="formsix-e">
+                        <div class="form-group i-password password-toggle">
+                            <input type="password" class="form-control" required="" name="password" id="password2" placeholder="Senha">
+                            <button type="button" class="password-toggle-btn" onclick="togglePassword('password2')">
+                                <img src="{% static 'iotmonitor/assets/img/senha_invisivel.png' %}" alt="Mostrar senha"
+                                    id="toggle-icon-password2">
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="login_remember_box">
-                    <label class="control control--checkbox">Lembrar-me
-                        <input type="checkbox">
-                        <span class="control__indicator"></span>
-                    </label>
-                    <a href="#" class="forget_password">Esqueci a senha</a>
-                </div>
-                <div class="login_btn_wrapper">
-                    <a href="{% url 'dashboard' %}" class="btn btn-primary login_btn">Entrar</a>
-                </div>
+                    
+                    <div class="login_remember_box">
+                        <label class="control control--checkbox">Lembrar-me
+                            <input type="checkbox" name="remember_me" value="1">
+                            <span class="control__indicator"></span>
+                        </label>
+                        <a href="{% url 'password_reset' %}"  onclick="alert('Funcionalidade em desenvolvimento')" class="forget_password">Esqueci a senha</a>
+                    </div>
+                    
+                    <div class="login_btn_wrapper">
+                        <button type="submit" class="btn btn-primary login_btn">Entrar</button>
+                    </div>
+                </form>
 
                 <!-- Botão do Google melhorado -->
-                <a href="#" class="google-signin-btn">
+                <a href="#" onclick="alert('Funcionalidade em desenvolvimento')" class="google-signin-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" height="18" width="18">
                         <path fill="#4285f4" d="M386 400c45-42 65-112 53-179H260v74h102c-4 24-18 44-38 57z"></path>
                         <path fill="#34a853" d="M90 341a192 192 0 0 0 296 59l-62-48c-53 35-141 22-171-60z"></path>
@@ -77,6 +98,9 @@
 
     {% endblock %}
 
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'iotmonitor/assets/js/login.js' %}"></script>
 
 </body>
