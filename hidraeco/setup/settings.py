@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
-import dj_database_url
+#import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +27,71 @@ SECRET_KEY = 'django-insecure-s%5w70mp^bo0#9vc5pm2(s10pwinu*0$nle3nh88-a#sr87lj7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['hidra-eco.com.br','www.hidra-eco.com.br','hidra-eco.onrender.com']
+# Configurações automáticas baseadas no DEBUG
+if DEBUG:
+    # ========== CONFIGURAÇÕES LOCAIS ==========
+    ALLOWED_HOSTS = []
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+    
+    MIDDLEWARE = [
+        'django.middleware.security.SecurityMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        'iotmonitor.middleware.SecurityMiddleware', 
+    ]
+    
+else:
+    # ========== CONFIGURAÇÕES DE PRODUÇÃO ==========
+    import dj_database_url
+    
+    ALLOWED_HOSTS = ['hidra-eco.com.br', 'www.hidra-eco.com.br', 'hidra-eco.onrender.com']
+    
+    DATABASES = {
+        'default': dj_database_url.config(
+            default='sqlite:///' + str(BASE_DIR / 'db.sqlite3')
+        )
+    }
+    
+    MIDDLEWARE = [
+        'django.middleware.security.SecurityMiddleware',
+        'whitenoise.middleware.WhiteNoiseMiddleware',  # Para servir arquivos estáticos em produção
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        'iotmonitor.middleware.SecurityMiddleware', 
+    ]
+    
+    # Configuração para arquivos estáticos em produção
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
+
+############################## LOCAL ##############################
+'''ALLOWED_HOSTS = [] '''
+############################## LOCAL ##############################
+
+############################## PRODUÇÃO ##############################
+'''
+ALLOWED_HOSTS = ['hidra-eco.com.br','www.hidra-eco.com.br','hidra-eco.onrender.com'] #Produção
+'''
+############################## PRODUÇÃO ##############################
+
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
 
 
 # Application definition
@@ -42,9 +106,14 @@ INSTALLED_APPS = [
     'iotmonitor.apps.IotmonitorConfig',
 ]
 
-MIDDLEWARE = [
+'''MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    ############################## PRODUÇÃO ##############################
+
+    #'whitenoise.middleware.WhiteNoiseMiddleware', 
+
+    ############################## PRODUÇÃO ##############################
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -52,7 +121,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'iotmonitor.middleware.SecurityMiddleware', 
-]
+]'''
 
 ROOT_URLCONF = 'setup.urls'
 
@@ -77,11 +146,27 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
+
+############################## PRODUÇÃO ##############################
+'''DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///' + str(BASE_DIR / 'db.sqlite3')
     )
-}
+}'''
+############################## PRODUÇÃO ##############################
+
+############################## LOCAL ##############################
+'''DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}'''
+############################## LOCAL ##############################
+
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
+
 
 
 # Password validation
@@ -119,8 +204,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # <- cria essa pasta na raiz
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
+
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
+
+############################## PRODUÇÃO ##############################
+
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+############################## PRODUÇÃO ##############################
+
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
