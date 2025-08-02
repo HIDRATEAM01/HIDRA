@@ -18,5 +18,7 @@ urlpatterns = [
     # URLs AJAX para validações
     path('check-username/', views.check_username, name='check_username'),
     path('check-email/', views.check_email, name='check_email'),
-    
+    # APIs do Dashboard com IQA
+    path('api/dashboard/', views.dashboard_api, name='dashboard_api'),
+    path('api/update-sensors/', views.update_sensor_values, name='update_sensors'),
 ]
