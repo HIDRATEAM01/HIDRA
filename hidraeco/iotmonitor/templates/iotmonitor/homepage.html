@@ -28,7 +28,7 @@
                     <!-- Links de navegação centralizados -->
                     <ul class="navbar-nav mx-auto">
                         <li class="nav-item">
-                            <a class="nav-link nav-menu-item" href="#hero">Home</a>
+                            <a class="nav-link nav-menu-item active" href="#hero">Home</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link nav-menu-item" href="#about">Sobre</a>
@@ -121,30 +121,30 @@
         justify-content: center;
         width: 50px;
         height: 50px;
-        background: linear-gradient(135deg, #ffffff, #f8f9fa);
-        border-radius: 50%;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border-radius: 12px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
     }
 
     .logo-container:hover {
-        transform: scale(1.05) rotate(-5deg);
-        box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+        transform: scale(1.05) rotate(10deg);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
     }
 
     .sitename {
-        color: #007bff;
+        color: #fff;
         font-weight: 800;
         font-size: 0.9rem;
         letter-spacing: 1px;
         margin: 0;
-        text-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     /* Navigation Menu */
     .nav-menu-item {
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.95) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
         padding: 0.75rem 1rem !important;
         margin: 0 0.25rem;
         border-radius: 8px;
@@ -159,6 +159,12 @@
         transform: translateY(-1px);
     }
 
+    .nav-menu-item.active {
+        background-color: rgba(52, 152, 219, 0.3);
+        color: #fff !important;
+        box-shadow: inset 0 0 10px rgba(52, 152, 219, 0.2);
+    }
+
     .nav-menu-item::before {
         content: '';
         position: absolute;
@@ -166,13 +172,14 @@
         left: 50%;
         width: 0;
         height: 2px;
-        background: linear-gradient(90deg, #fff, #f8f9fa);
+        background: linear-gradient(90deg, #3498db, #2ecc71);
         transition: all 0.3s ease;
         transform: translateX(-50%);
         border-radius: 2px;
     }
 
-    .nav-menu-item:hover::before {
+    .nav-menu-item:hover::before,
+    .nav-menu-item.active::before {
         width: 80%;
     }
 
@@ -213,42 +220,43 @@
     }
 
     .btn-success {
-        background: linear-gradient(135deg, #28a745, #1e7e34);
-        border-color: #28a745;
+        background: linear-gradient(135deg, #007bff, #007bff);
+        border-color: #007bff;
     }
 
     .btn-success:hover {
-        background: linear-gradient(135deg, #1e7e34, #155724);
-        border-color: #1e7e34;
+        background: linear-gradient(1deg, #b8dbff, #fff);
+        border-color: linear-gradient(135deg, #007bff, #fff);
+        color: #007bff;
     }
 
     .btn-outline-success {
-        border-color: #28a745;
-        color: #28a745;
+        border-color: #007bff;
+        color: #007bff;
     }
 
     .btn-outline-success:hover {
-        background-color: #28a745;
-        border-color: #28a745;
+        background: linear-gradient(1deg, #b8dbff, #007bff);
+        border-color: linear-gradient(135deg, #007bff, #fff);
         color: #fff;
     }
 
     .btn-outline-light {
-        border-color: rgba(255, 255, 255, 0.6);
+        border-color: rgba(255, 255, 255, 0.4);
         color: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(10px);
     }
 
     .btn-outline-light:hover {
         background-color: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.8);
+        border-color: rgba(255, 255, 255, 0.6);
         color: #fff;
     }
 
     .btn-light {
         background-color: rgba(255, 255, 255, 0.9);
         border-color: rgba(255, 255, 255, 0.9);
-        color: #007bff;
+        color: #2c3e50;
     }
 
     .btn-light:hover {
@@ -275,11 +283,12 @@
     .dropdown-item {
         padding: 0.75rem 1rem;
         transition: all 0.3s ease;
+        border-radius: 0;
     }
 
     .dropdown-item:hover {
-        background-color: rgba(0, 123, 255, 0.1);
-        color: #007bff;
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #2c3e50;
         transform: translateX(4px);
     }
 
@@ -300,13 +309,13 @@
     }
 
     .navbar-toggler-icon {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255%2C%20255%2C%20255%2C%201%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
     }
 
     /* Mobile Responsiveness */
     @media (max-width: 991.98px) {
         .header {
-            background: linear-gradient(135deg, #007bff, #0056b3);
+            background: #007bff;
         }
 
         .navbar-nav {
@@ -366,6 +375,7 @@
         .logo-container {
             width: 40px;
             height: 40px;
+            border-radius: 10px;
         }
 
         .sitename {
@@ -386,7 +396,7 @@
     .btn:focus,
     .nav-link:focus,
     .dropdown-item:focus {
-        outline: 2px solid rgba(255, 255, 255, 0.6);
+        outline: 2px solid #3498db;
         outline-offset: 2px;
     }
 
@@ -413,9 +423,9 @@
 
     /* Glassmorphism effect for homepage */
     .dropdown-menu {
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.25);
         backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.18);
     }
 
     /* Hero-specific styling */
