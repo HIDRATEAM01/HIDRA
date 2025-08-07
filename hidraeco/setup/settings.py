@@ -12,11 +12,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
-#import dj_database_url
+# import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Criar diretório de logs se não existir
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -26,62 +29,117 @@ SECRET_KEY = 'django-insecure-s%5w70mp^bo0#9vc5pm2(s10pwinu*0$nle3nh88-a#sr87lj7
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-#True = Local X #False = Produção
-DEBUG = False
+# True = Local X #False = Produção
+DEBUG = True
 
 # Configurações automáticas baseadas no DEBUG
 if DEBUG:
     # ========== CONFIGURAÇÕES LOCAIS ==========
     ALLOWED_HOSTS = []
-    
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-    
+
     MIDDLEWARE = [
         'django.middleware.security.SecurityMiddleware',
         'django.contrib.sessions.middleware.SessionMiddleware',
+        'corsheaders.middleware.CorsMiddleware',
         'django.middleware.common.CommonMiddleware',
         'django.middleware.csrf.CsrfViewMiddleware',
         'django.contrib.auth.middleware.AuthenticationMiddleware',
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.middleware.clickjacking.XFrameOptionsMiddleware',
-        'iotmonitor.middleware.SecurityMiddleware', 
+        'iotmonitor.middleware.SecurityMiddleware',
     ]
-    
+
+    # Permitir CORS para ESP32 (apenas para desenvolvimento)
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
 else:
     # ========== CONFIGURAÇÕES DE PRODUÇÃO ==========
     import dj_database_url
-    
-    ALLOWED_HOSTS = ['hidra-eco.com.br', 'www.hidra-eco.com.br', 'hidra-eco.onrender.com']
-    
+
+    ALLOWED_HOSTS = ['hidra-eco.com.br',
+                     'www.hidra-eco.com.br', 'hidra-eco.onrender.com']
+
     DATABASES = {
         'default': dj_database_url.config(
             default='sqlite:///' + str(BASE_DIR / 'db.sqlite3')
         )
     }
-    
+
     MIDDLEWARE = [
         'django.middleware.security.SecurityMiddleware',
-        'whitenoise.middleware.WhiteNoiseMiddleware',  # Para servir arquivos estáticos em produção
+        # Para servir arquivos estáticos em produção
+        'whitenoise.middleware.WhiteNoiseMiddleware',
+        'corsheaders.middleware.CorsMiddleware',
         'django.contrib.sessions.middleware.SessionMiddleware',
         'django.middleware.common.CommonMiddleware',
         'django.middleware.csrf.CsrfViewMiddleware',
         'django.contrib.auth.middleware.AuthenticationMiddleware',
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.middleware.clickjacking.XFrameOptionsMiddleware',
-        'iotmonitor.middleware.SecurityMiddleware', 
+        'iotmonitor.middleware.SecurityMiddleware',
     ]
+
+    # ========== CONFIGURAÇÕES CORS PARA PRODUÇÃO ==========
+    CORS_ALLOWED_ORIGINS = [
+        "https://hidra-eco.com.br",
+        "https://www.hidra-eco.com.br",
+        "https://hidra-eco.onrender.com",
+    ]
+    
+    # Permitir headers necessários para ESP32
+    CORS_ALLOW_HEADERS = [
+        'accept',
+        'accept-encoding',
+        'authorization',
+        'content-type',
+        'dnt',
+        'origin',
+        'user-agent',
+        'x-csrftoken',
+        'x-requested-with',
+    ]
+
+    # Permitir métodos necessários
+    CORS_ALLOWED_METHODS = [
+        'DELETE',
+        'GET',
+        'OPTIONS',
+        'PATCH',
+        'POST',
+        'PUT',
+    ]
+
+     # ========== CONFIGURAÇÕES DE SEGURANÇA HTTPS ==========
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
     
     # Configuração para arquivos estáticos em produção
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# ========== CONFIGURAÇÃO ESPECIAL PARA APIs DO ESP32 ==========
+# Para permitir que ESP32 acesse APIs sem CSRF token
+CSRF_TRUSTED_ORIGINS = [
+    "https://hidra-eco.com.br",
+    "https://www.hidra-eco.com.br",
+    "https://hidra-eco.onrender.com",
+]
 
-
-########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ##########
 
 ############################## LOCAL ##############################
 '''ALLOWED_HOSTS = [] '''
@@ -93,7 +151,7 @@ ALLOWED_HOSTS = ['hidra-eco.com.br','www.hidra-eco.com.br','hidra-eco.onrender.c
 '''
 ############################## PRODUÇÃO ##############################
 
-########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ##########
 
 
 # Application definition
@@ -106,6 +164,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'iotmonitor.apps.IotmonitorConfig',
+    'corsheaders',
 ]
 
 '''MIDDLEWARE = [
@@ -148,7 +207,7 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ##########
 
 ############################## PRODUÇÃO ##############################
 '''DATABASES = {
@@ -167,8 +226,7 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 }'''
 ############################## LOCAL ##############################
 
-########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
-
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ##########
 
 
 # Password validation
@@ -206,17 +264,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
-
-############################## PRODUÇÃO ##############################
-
-#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ##########
 
 ############################## PRODUÇÃO ##############################
 
-########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ########## 
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+############################## PRODUÇÃO ##############################
+
+########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ##########
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -260,12 +318,35 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    # ==================== FORMATADORES ====================
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'format': '[{levelname}] {asctime} | {name} | {module}.{funcName}:{lineno} | {message}',
             'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'simple': {
+            'format': '[{levelname}] {asctime} | {message}',
+            'style': '{',
+            'datefmt': '%H:%M:%S',
+        },
+        'sensor_format': {
+            'format': '[SENSOR] {asctime} | {levelname} | Device: {device_id} | {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
         },
     },
+    # ==================== FILTROS ====================
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    
+    # ==================== HANDLERS ====================
     'handlers': {
         'file': {
             'level': 'INFO',
@@ -276,22 +357,126 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+            'filters': ['require_debug_true'],
+        },
+        # Arquivo geral do Django
+        'django_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'django.log',
+            'maxBytes': 5 * 1024 * 1024,  # 5MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        
+        # Arquivo específico para sensores
+        'sensor_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'sensors.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        
+        # Arquivo para erros críticos
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'errors.log',
+            'maxBytes': 5 * 1024 * 1024,  # 5MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        
+        # Arquivo para dados dos ESP32/ESP8266
+        'esp_data_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'esp_data.log',
+            'maxBytes': 20 * 1024 * 1024,  # 20MB
+            'backupCount': 15,
+            'formatter': 'verbose',
+        },
+        
+        # Arquivo para alertas
+        'alerts_file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'alerts.log',
+            'maxBytes': 5 * 1024 * 1024,  # 5MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        
+        # Handler para email em caso de erro crítico (opcional)
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'filters': ['require_debug_false'],
             'formatter': 'verbose',
         },
     },
+    # ==================== LOGGERS ====================
     'loggers': {
+        # Logger raiz do Django
         'django': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console', 'django_file'],
             'level': 'INFO',
             'propagate': True,
         },
-        'your_app_name': {  # Substitua pelo nome do seu app
-            'handlers': ['file', 'console'],
+        
+        # Logger para erros do Django
+        'django.request': {
+            'handlers': ['console', 'error_file', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        
+        # Logger para sua aplicação (substitua 'iotmonitor' pelo nome do seu app)
+        'iotmonitor': {
+            'handlers': ['console', 'sensor_file'],
             'level': 'DEBUG',
             'propagate': True,
         },
+        
+        # Logger específico para dados dos sensores
+        'sensors': {
+            'handlers': ['console', 'esp_data_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        
+        # Logger para alertas
+        'alerts': {
+            'handlers': ['console', 'alerts_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        
+        # Logger para IQA (Índice de Qualidade da Água)
+        'iqa': {
+            'handlers': ['console', 'sensor_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        
+        # Logger para conexões ESP32
+        'esp_connection': {
+            'handlers': ['console', 'esp_data_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+    
+    # Logger raiz
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console', 'error_file'],
     },
 }
+
 # Configurações de email (para recuperação de senha)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # ou seu provedor de email
@@ -301,3 +486,14 @@ EMAIL_HOST_USER = 'hidrateams@gmail.com'
 EMAIL_HOST_PASSWORD = 'qyhc pbkd nbgp wpbf'
 DEFAULT_FROM_EMAIL = 'HIDRA <hidrateams@gmail.com>'
 
+# Cache (para armazenar dados dos sensores temporariamente)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'sensor-data-cache',
+        'TIMEOUT': 300,  # 5 minutos
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}

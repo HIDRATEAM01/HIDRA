@@ -73,26 +73,63 @@ class HidraDashboard {
                         display: true,
                         position: 'top',
                         labels: {
-                            color: '#ffffff'
+                            color: '#333333', // ✅ CORREÇÃO: Era branco, agora é escuro
+                            font: {
+                                size: 14,
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            }
                         }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#ff6384',
+                        borderWidth: 1
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: false,
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                            color: 'rgba(0, 0, 0, 0.1)', // ✅ CORREÇÃO: Grid visível
+                            lineWidth: 1
                         },
                         ticks: {
-                            color: '#ffffff'
+                            color: '#666666', // ✅ CORREÇÃO: Texto escuro visível
+                            font: {
+                                size: 12
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Valores',
+                            color: '#333333', // ✅ CORREÇÃO: Título escuro visível
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
                         }
                     },
                     x: {
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                            color: 'rgba(0, 0, 0, 0.1)', // ✅ CORREÇÃO: Grid visível
+                            lineWidth: 1
                         },
                         ticks: {
-                            color: '#ffffff'
+                            color: '#666666', // ✅ CORREÇÃO: Texto escuro visível
+                            font: {
+                                size: 12
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Horário',
+                            color: '#333333', // ✅ CORREÇÃO: Título escuro visível
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
                         }
                     }
                 },
@@ -140,7 +177,6 @@ class HidraDashboard {
     }
 
     updateChart(parameter) {
-        // Dados pré-definidos para melhor visualização
         const chartConfigs = {
             temperature: {
                 label: 'Temperatura (°C)',
@@ -177,6 +213,13 @@ class HidraDashboard {
                 backgroundColor: config.color + '20',
                 pointBackgroundColor: config.color
             };
+
+            // Garantir que as cores dos labels permaneçam visíveis após update
+            this.chart.options.plugins.legend.labels.color = '#333333';
+            this.chart.options.scales.x.ticks.color = '#666666';
+            this.chart.options.scales.y.ticks.color = '#666666';
+            this.chart.options.scales.x.title.color = '#333333';
+            this.chart.options.scales.y.title.color = '#333333';
 
             this.chart.update('active');
         }

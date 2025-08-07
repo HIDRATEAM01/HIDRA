@@ -18,7 +18,12 @@ urlpatterns = [
     # URLs AJAX para validações
     path('check-username/', views.check_username, name='check_username'),
     path('check-email/', views.check_email, name='check_email'),
-    # APIs do Dashboard com IQA
+    # # API JSON para o dashboard (AJAX) com IQA
     path('api/dashboard/', views.dashboard_api, name='dashboard_api'),
     path('api/update-sensors/', views.update_sensor_values, name='update_sensors'),
+    # API para o ESP32/ESP8266
+    path('api/sensors/data/', views.esp_sensor_data, name='esp_sensor_data'),
+    path('api/sensors/heartbeat/', views.esp_heartbeat, name='esp_heartbeat'),   
+    # Endpoint para testes (remover em produção)
+    path('api/sensors/test/', views.update_sensor_values, name='update_sensor_values'),
 ]
