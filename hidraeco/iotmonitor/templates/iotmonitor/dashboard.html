@@ -508,67 +508,76 @@
     </div>
 
     <div class="sensors-grid">
-        <div class="sensor-card" data-sensor-card="temperatura">
+        <div class="sensor-card" data-sensor-card="temperatura" data-sensor-name="Temperatura da Água" data-sensor-unit="°C">
             <div class="sensor-icon"><i class="fas fa-thermometer-half"></i></div>
             <div class="sensor-name">Temperatura da Água</div>
             <div class="sensor-value" data-sensor-value="temperatura">{{ sensor_data.temperatura|floatformat:1 }}</div>
             <div class="sensor-unit">°C</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
         </div>
 
-        <div class="sensor-card" data-sensor-card="ph">
+        <div class="sensor-card" data-sensor-card="ph" data-sensor-name="pH" data-sensor-unit="pH">
             <div class="sensor-icon"><i class="fas fa-vial"></i></div>
             <div class="sensor-name">pH</div>
             <div class="sensor-value" data-sensor-value="ph">{{ sensor_data.ph|floatformat:1 }}</div>
             <div class="sensor-unit">pH</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
         </div>
 
-        <div class="sensor-card" data-sensor-card="oxigenio">
+        <div class="sensor-card" data-sensor-card="oxigenio" data-sensor-name="Oxigênio Dissolvido" data-sensor-unit="mg/L">
             <div class="sensor-icon"><i class="fas fa-lungs"></i></div>
             <div class="sensor-name">Oxigênio Dissolvido</div>
             <div class="sensor-value" data-sensor-value="oxigenio">{{ sensor_data.oxigenio|floatformat:1 }}</div>
             <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
         </div>
 
-        <div class="sensor-card" data-sensor-card="dbo">
+        <div class="sensor-card" data-sensor-card="dbo" data-sensor-name="DBO" data-sensor-unit="mg/L">
             <div class="sensor-icon"><i class="fas fa-leaf"></i></div>
             <div class="sensor-name">DBO</div>
             <div class="sensor-value" data-sensor-value="dbo">{{ sensor_data.dbo|floatformat:1 }}</div>
             <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
         </div>
 
-        <div class="sensor-card" data-sensor-card="coliformes">
+        <div class="sensor-card" data-sensor-card="coliformes" data-sensor-name="Coliformes Termotolerantes" data-sensor-unit="NMP/100mL">
             <div class="sensor-icon"><i class="fas fa-bacteria"></i></div>
             <div class="sensor-name">Coliformes Termotolerantes</div>
             <div class="sensor-value" data-sensor-value="coliformes">{{ sensor_data.coliformes|floatformat:0 }}</div>
             <div class="sensor-unit">NMP/100mL</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
         </div>
 
-        <div class="sensor-card" data-sensor-card="nitrogenio">
+        <div class="sensor-card" data-sensor-card="nitrogenio" data-sensor-name="Nitrogênio Total" data-sensor-unit="mg/L">
             <div class="sensor-icon"><i class="fas fa-atom"></i></div>
             <div class="sensor-name">Nitrogênio Total</div>
             <div class="sensor-value" data-sensor-value="nitrogenio">{{ sensor_data.nitrogenio|floatformat:2 }}</div>
             <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
         </div>
 
-        <div class="sensor-card" data-sensor-card="fosforo">
+        <div class="sensor-card" data-sensor-card="fosforo" data-sensor-name="Fósforo Total" data-sensor-unit="mg/L">
             <div class="sensor-icon"><i class="fas fa-fire"></i></div>
             <div class="sensor-name">Fósforo Total</div>
             <div class="sensor-value" data-sensor-value="fosforo">{{ sensor_data.fosforo|floatformat:3 }}</div>
             <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
         </div>
 
-        <div class="sensor-card" data-sensor-card="turbidez">
+        <div class="sensor-card" data-sensor-card="turbidez" data-sensor-name="Turbidez" data-sensor-unit="NTU">
             <div class="sensor-icon"><i class="fas fa-eye"></i></div>
             <div class="sensor-name">Turbidez</div>
             <div class="sensor-value" data-sensor-value="turbidez">{{ sensor_data.turbidez|floatformat:1 }}</div>
             <div class="sensor-unit">NTU</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
         </div>
 
-        <div class="sensor-card" data-sensor-card="solidos">
+        <div class="sensor-card" data-sensor-card="solidos" data-sensor-name="Sólidos Totais" data-sensor-unit="mg/L">
             <div class="sensor-icon"><i class="fas fa-cubes"></i></div>
             <div class="sensor-name">Sólidos Totais</div>
             <div class="sensor-value" data-sensor-value="solidos">{{ sensor_data.solidos|floatformat:0 }}</div>
             <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
         </div>
     </div>
 
@@ -600,6 +609,46 @@
         <i class="fas fa-clock"></i> Última atualização: <span id="last-update-time">{{ last_update|date:"d/m/Y H:i" }}</span>
     </div>
 </div>
+
+<div class="sensor-card" 
+         data-sensor-card="temperatura"
+         data-sensor-name="Temperatura da Água"
+         data-sensor-unit="°C">
+        <div class="sensor-icon"><i class="fas fa-thermometer-half"></i></div>
+        <div class="sensor-name">Temperatura da Água</div>
+        <div class="sensor-value" data-sensor-value="temperatura">{{ sensor_data.temperatura|floatformat:1 }}</div>
+        <div class="sensor-unit">°C</div>
+    </div>
+    <div class="sensor-card" 
+         data-sensor-card="ph"
+         data-sensor-name="pH"
+         data-sensor-unit="pH">
+         </div>
+    <div class="last-update">
+        <i class="fas fa-clock"></i> Última atualização: <span id="last-update-time">{{ last_update|date:"d/m/Y H:i" }}</span>
+    </div>
+</div> <div class="modal fade" id="historicalChartModal" tabindex="-1" aria-labelledby="historicalChartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historicalChartModalLabel">Histórico do Sensor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="chart-loading-indicator" style="text-align: center; padding: 40px;">
+                    <p>Carregando dados do histórico...</p>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 400px; display: none;">
+                    <canvas id="historicalChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
     // Passar dados iniciais do contexto Django para JavaScript

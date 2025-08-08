@@ -1,4 +1,4 @@
-#views.py
+# views.py
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.utils import timezone
@@ -20,7 +20,7 @@ from .utils import send_password_reset_email, validate_password_reset_token
 from django.conf import settings
 from .iqa_calculator import IQACalculator
 # Importar serviço Firebase
-from .firebase_service import firebase_service, get_firebase_sensor_data, save_firebase_sensor_data
+from .firebase_service import firebase_service, get_firebase_sensor_data, save_firebase_sensor_data, get_all_firebase_leituras
 from datetime import datetime
 
 # Configurar logging
@@ -263,9 +263,6 @@ def check_email(request):
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
 
-
-
-
 def password_reset_request(request):
     """
     View para solicitar recuperação de senha
@@ -362,13 +359,14 @@ def get_sensor_data():
     """
     Obtém dados dos sensores, priorizando o Firebase com a nova estrutura do ESP32.
     """
-    logger.debug("Iniciando obtenção de dados dos sensores (nova estrutura ESP32)")
+    logger.debug(
+        "Iniciando obtenção de dados dos sensores (nova estrutura ESP32)")
 
     try:
         # 1. Tentar obter a última leitura do Firebase a partir do caminho /leituras
         # Esta lógica deve idealmente estar em firebase_service.py
         # Aqui, simulamos a leitura e a transformação necessárias.
-        
+
         # Supondo que get_firebase_sensor_data foi adaptado para buscar a última leitura em '/leituras'
         # e retorna um dicionário. Se não, a lógica seria:
         # firebase_leituras = firebase_service.get_data('/leituras', order_by_key=True, limit_to_last=1)
@@ -380,25 +378,30 @@ def get_sensor_data():
         #    firebase_raw_data = firebase_leituras[leitura_key][timestamp_key]
         # else:
         #    firebase_raw_data = None
-        
+
         # Para simplificar, vamos assumir que get_firebase_sensor_data retorna o último dado bruto
-        firebase_raw_data = get_firebase_sensor_data("leituras") # "leituras" é o novo alvo
+        firebase_raw_data = get_firebase_sensor_data(
+            "leituras")  # "leituras" é o novo alvo
 
         if firebase_raw_data:
             logger.info("Dados brutos obtidos do Firebase (caminho /leituras)")
-            
+
             # 2. MAPEAR E TRANSFORMAR OS DADOS DO FIREBASE PARA O FORMATO DO DJANGO
             # O ESP32 envia 'oxigenio', 'solidos', etc. O Django espera 'OD', 'Residuos'.
             sensor_data = {
                 'Temperatura': float(firebase_raw_data.get('temperatura', 25)),
                 'pH': float(firebase_raw_data.get('ph', 7)),
-                'OD': float(firebase_raw_data.get('oxigenio', 0)), # Mapeamento: oxigenio -> OD
+                # Mapeamento: oxigenio -> OD
+                'OD': float(firebase_raw_data.get('oxigenio', 0)),
                 'DBO': float(firebase_raw_data.get('dbo', 0)),
                 'Coliformes': float(firebase_raw_data.get('coliformes', 0)),
-                'NT': float(firebase_raw_data.get('nitrogenio', 0)), # Mapeamento: nitrogenio -> NT (Nitrogênio Total)
-                'FT': float(firebase_raw_data.get('fosforo', 0)), # Mapeamento: fosforo -> FT (Fósforo Total)
+                # Mapeamento: nitrogenio -> NT (Nitrogênio Total)
+                'NT': float(firebase_raw_data.get('nitrogenio', 0)),
+                # Mapeamento: fosforo -> FT (Fósforo Total)
+                'FT': float(firebase_raw_data.get('fosforo', 0)),
                 'Turbidez': float(firebase_raw_data.get('turbidez', 0)),
-                'Residuos': float(firebase_raw_data.get('solidos', 0)), # Mapeamento: solidos -> Residuos
+                # Mapeamento: solidos -> Residuos
+                'Residuos': float(firebase_raw_data.get('solidos', 0)),
             }
 
             # 3. CONVERTER O TIMESTAMP
@@ -406,32 +409,39 @@ def get_sensor_data():
             timestamp_str = firebase_raw_data.get('timestamp')
             try:
                 # Converte o formato customizado para um objeto datetime
-                data_time = datetime.strptime(timestamp_str, '%d-%m-%Y-%H-%M-%S')
-                sensor_data['timestamp'] = data_time.isoformat() # Converte para o formato ISO que o resto do código usa
+                data_time = datetime.strptime(
+                    timestamp_str, '%d-%m-%Y-%H-%M-%S')
+                # Converte para o formato ISO que o resto do código usa
+                sensor_data['timestamp'] = data_time.isoformat()
             except (ValueError, TypeError):
-                logger.warning(f"Timestamp em formato inesperado: {timestamp_str}. Usando o horário atual.")
+                logger.warning(
+                    f"Timestamp em formato inesperado: {timestamp_str}. Usando o horário atual.")
                 sensor_data['timestamp'] = datetime.now().isoformat()
 
             # Verificar se os dados são recentes
             data_time_obj = datetime.fromisoformat(sensor_data['timestamp'])
             time_diff = datetime.now() - data_time_obj.replace(tzinfo=None)
 
-            if time_diff.total_seconds() < 300: # 5 minutos
-                logger.info("Dados recentes do Firebase processados e mapeados com sucesso.")
-                cache.set('sensor_data', sensor_data, 300) # Salva no cache com os nomes corretos
+            if time_diff.total_seconds() < 300:  # 5 minutos
+                logger.info(
+                    "Dados recentes do Firebase processados e mapeados com sucesso.")
+                # Salva no cache com os nomes corretos
+                cache.set('sensor_data', sensor_data, 300)
                 return sensor_data
             else:
-                logger.warning(f"Dados do Firebase são antigos: {time_diff.total_seconds():.0f} segundos.")
+                logger.warning(
+                    f"Dados do Firebase são antigos: {time_diff.total_seconds():.0f} segundos.")
 
     except Exception as e:
-        logger.error(f"Erro crítico ao obter ou processar dados do Firebase: {e}")
+        logger.error(
+            f"Erro crítico ao obter ou processar dados do Firebase: {e}")
 
     # Fallback para o cache ou dados de emergência se o Firebase falhar ou os dados forem antigos
     cached_data = cache.get('sensor_data')
     if cached_data:
         logger.info("Usando dados do cache local como fallback.")
         return cached_data
-    
+
     logger.warning("Usando dados de fallback de emergência.")
     return {
         'Coliformes': 0, 'pH': 7.0, 'DBO': 0, 'NT': 0, 'FT': 0,
@@ -448,27 +458,28 @@ def esp_sensor_data(request):
     """
     client_ip = request.META.get('REMOTE_ADDR', 'Unknown')
     esp_logger.info(f"Conexão recebida de IP: {client_ip}")
-    
+
     try:
         # Parse do JSON
         raw_data = request.body.decode('utf-8')
         esp_logger.debug(f"Dados brutos recebidos: {raw_data}")
-        
+
         data = json.loads(raw_data)
         device_id = data.get('device_id', 'ESP32_001')
-        
+
         esp_logger.info(f"Processando dados do dispositivo: {device_id}")
-        
+
         # Validação de campos obrigatórios
-        required_fields = ['coliformes', 'ph', 'dbo', 'nt', 'ft', 
-                          'temperatura', 'turbidez', 'residuos', 'od']
-        
-        missing_fields = [field for field in required_fields if field not in data]
+        required_fields = ['coliformes', 'ph', 'dbo', 'nt', 'ft',
+                           'temperatura', 'turbidez', 'residuos', 'od']
+
+        missing_fields = [
+            field for field in required_fields if field not in data]
         if missing_fields:
             error_msg = f'Campos obrigatórios ausentes: {missing_fields}'
             esp_logger.warning(f"Dispositivo {device_id}: {error_msg}")
             return JsonResponse({'success': False, 'error': error_msg}, status=400)
-        
+
         # Conversão e validação de tipos
         try:
             sensor_data = {
@@ -486,54 +497,61 @@ def esp_sensor_data(request):
             error_msg = f'Erro na conversão de dados: {str(e)}'
             esp_logger.error(f"Dispositivo {device_id}: {error_msg}")
             return JsonResponse({'success': False, 'error': error_msg}, status=400)
-        
+
         # Log dos valores recebidos
         sensor_logger.info(f"Dados válidos recebidos do {device_id}:")
         for param, value in sensor_data.items():
             sensor_logger.info(f"  {param}: {value}")
-        
+
         # Validações de range
         validation_errors = []
-        
+
         if not (0 <= sensor_data['pH'] <= 14):
-            validation_errors.append(f"pH fora do range (0-14): {sensor_data['pH']}")
-        
+            validation_errors.append(
+                f"pH fora do range (0-14): {sensor_data['pH']}")
+
         if sensor_data['Temperatura'] < -50 or sensor_data['Temperatura'] > 100:
-            validation_errors.append(f"Temperatura fora do range (-50°C a 100°C): {sensor_data['Temperatura']}")
-        
+            validation_errors.append(
+                f"Temperatura fora do range (-50°C a 100°C): {sensor_data['Temperatura']}")
+
         if sensor_data['OD'] < 0:
-            validation_errors.append(f"Oxigênio Dissolvido negativo: {sensor_data['OD']}")
-        
+            validation_errors.append(
+                f"Oxigênio Dissolvido negativo: {sensor_data['OD']}")
+
         if validation_errors:
             for error in validation_errors:
                 esp_logger.warning(f"Dispositivo {device_id}: {error}")
             return JsonResponse({
-                'success': False, 
+                'success': False,
                 'error': 'Dados fora dos ranges válidos',
                 'details': validation_errors
             }, status=400)
-        
+
         # Verificar alertas
         check_sensor_alerts(sensor_data, device_id)
-        
+
         # SALVAR DADOS EM MÚLTIPLAS FONTES
         save_operations = []
-        
+
         # 1. Salvar no Firebase (prioridade)
         try:
-            firebase_success = save_firebase_sensor_data(sensor_data, device_id)
+            firebase_success = save_firebase_sensor_data(
+                sensor_data, device_id)
             if firebase_success:
-                sensor_logger.info(f"Dados salvos no Firebase para {device_id}")
+                sensor_logger.info(
+                    f"Dados salvos no Firebase para {device_id}")
                 save_operations.append("Firebase")
             else:
-                sensor_logger.warning(f"Falha ao salvar no Firebase para {device_id}")
+                sensor_logger.warning(
+                    f"Falha ao salvar no Firebase para {device_id}")
         except Exception as firebase_error:
-            sensor_logger.error(f"Erro Firebase para {device_id}: {firebase_error}")
-        
+            sensor_logger.error(
+                f"Erro Firebase para {device_id}: {firebase_error}")
+
         # 2. Salvar no banco de dados local (backup)
         try:
             from .models import SensorReading
-            
+
             new_reading = SensorReading.objects.create(
                 coliformes=sensor_data['Coliformes'],
                 ph=sensor_data['pH'],
@@ -546,36 +564,38 @@ def esp_sensor_data(request):
                 od=sensor_data['OD'],
                 device_id=device_id
             )
-            
-            sensor_logger.info(f"Dados salvos no banco local: ID {new_reading.id}")
+
+            sensor_logger.info(
+                f"Dados salvos no banco local: ID {new_reading.id}")
             save_operations.append("Database")
-            
+
         except Exception as db_error:
             sensor_logger.error(f"Erro ao salvar no banco local: {db_error}")
-        
+
         # 3. Salvar no cache
         cache.set('sensor_data', sensor_data, 300)
         cache.set(f'device_last_data_{device_id}', sensor_data, 600)
         save_operations.append("Cache")
-        
+
         # Calcular IQA
         iqa_valor = None
         try:
             from .iqa_calculator import IQACalculator
             calculator = IQACalculator()
             iqa_valor, _ = calculator.calcular_IQA(sensor_data)
-            
+
             iqa_logger.info(f"IQA calculado para {device_id}: {iqa_valor:.2f}")
-            
+
             # Alert se IQA muito baixo
             if iqa_valor < 25:
-                alert_logger.warning(f"IQA crítico detectado no {device_id}: {iqa_valor:.2f}")
-            
+                alert_logger.warning(
+                    f"IQA crítico detectado no {device_id}: {iqa_valor:.2f}")
+
         except ImportError:
             iqa_logger.warning("IQACalculator não disponível")
         except Exception as iqa_error:
             iqa_logger.error(f"Erro no cálculo do IQA: {iqa_error}")
-        
+
         # Resposta de sucesso
         response_data = {
             'success': True,
@@ -584,18 +604,19 @@ def esp_sensor_data(request):
             'device_id': device_id,
             'saved_to': save_operations
         }
-        
+
         if iqa_valor is not None:
             response_data['iqa_calculado'] = round(iqa_valor, 2)
-        
-        esp_logger.info(f"Processamento concluído para {device_id}. Salvos em: {', '.join(save_operations)}")
+
+        esp_logger.info(
+            f"Processamento concluído para {device_id}. Salvos em: {', '.join(save_operations)}")
         return JsonResponse(response_data)
-        
+
     except json.JSONDecodeError as e:
         error_msg = f'JSON inválido: {str(e)}'
         esp_logger.error(f"Erro de parsing JSON de {client_ip}: {error_msg}")
         return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
-    
+
     except Exception as e:
         logger.error(f"Erro inesperado ao processar dados do ESP: {e}")
         esp_logger.error(f"Erro crítico no processamento: {e}")
@@ -610,37 +631,39 @@ def check_sensor_alerts(sensor_data, device_id):
     Verifica e registra alertas baseados nos dados dos sensores
     """
     alerts = []
-    
+
     # Alertas de pH
     if sensor_data['pH'] < 6.0:
         alerts.append(f"pH muito ácido: {sensor_data['pH']}")
     elif sensor_data['pH'] > 9.0:
         alerts.append(f"pH muito básico: {sensor_data['pH']}")
-    
+
     # Alertas de temperatura
     if sensor_data['Temperatura'] > 35:
         alerts.append(f"Temperatura alta: {sensor_data['Temperatura']}°C")
     elif sensor_data['Temperatura'] < 5:
         alerts.append(f"Temperatura baixa: {sensor_data['Temperatura']}°C")
-    
+
     # Alertas de oxigênio dissolvido
     if sensor_data['OD'] < 4:
         alerts.append(f"Oxigênio dissolvido baixo: {sensor_data['OD']} mg/L")
-    
+
     # Alertas de turbidez
     if sensor_data['Turbidez'] > 40:
         alerts.append(f"Turbidez alta: {sensor_data['Turbidez']} NTU")
-    
+
     # Alertas de coliformes
     if sensor_data['Coliformes'] > 80:
-        alerts.append(f"Coliformes elevados: {sensor_data['Coliformes']} NMP/100mL")
-    
+        alerts.append(
+            f"Coliformes elevados: {sensor_data['Coliformes']} NMP/100mL")
+
     # Registrar alertas
     for alert in alerts:
         alert_logger.warning(f"ALERTA {device_id}: {alert}")
-    
+
     if alerts:
         logger.info(f"Total de {len(alerts)} alertas gerados para {device_id}")
+
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
@@ -649,16 +672,17 @@ def esp_heartbeat(request):
     Endpoint para heartbeat com logging
     """
     client_ip = request.META.get('REMOTE_ADDR', 'Unknown')
-    
+
     if request.method == 'POST':
         try:
             data = json.loads(request.body.decode('utf-8'))
             device_id = data.get('device_id', 'Unknown')
             status = data.get('status', 'online')
             uptime = data.get('uptime', 0)
-            
-            esp_logger.info(f"Heartbeat de {device_id} (IP: {client_ip}): {status}, uptime: {uptime}ms")
-            
+
+            esp_logger.info(
+                f"Heartbeat de {device_id} (IP: {client_ip}): {status}, uptime: {uptime}ms")
+
             # Salvar status no cache
             cache.set(f'device_status_{device_id}', {
                 'status': status,
@@ -666,17 +690,17 @@ def esp_heartbeat(request):
                 'uptime': uptime,
                 'ip_address': client_ip
             }, 600)
-            
+
             return JsonResponse({
                 'success': True,
                 'message': 'Heartbeat recebido',
                 'server_time': timezone.now().isoformat()
             })
-            
+
         except Exception as e:
             esp_logger.error(f"Erro no heartbeat de {client_ip}: {e}")
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
+
     else:  # GET
         esp_logger.debug(f"Ping recebido de {client_ip}")
         return JsonResponse({
@@ -692,38 +716,43 @@ def get_flood_risk_assessment(valores_sensores):
     """
     turbidez = valores_sensores.get('Turbidez', 0)
     residuos = valores_sensores.get('Residuos', 0)
-    
-    logger.debug(f"Avaliando risco de enchente: Turbidez={turbidez}, Resíduos={residuos}")
-    
+
+    logger.debug(
+        f"Avaliando risco de enchente: Turbidez={turbidez}, Resíduos={residuos}")
+
     if turbidez > 50 or residuos > 400:
         risk_level = "Risco Alto"
         css_class = "status-critical"
-        alert_logger.warning(f"Risco alto de enchente detectado: Turbidez={turbidez}, Resíduos={residuos}")
+        alert_logger.warning(
+            f"Risco alto de enchente detectado: Turbidez={turbidez}, Resíduos={residuos}")
     elif turbidez > 25 or residuos > 300:
         risk_level = "Risco Moderado"
         css_class = "status-warning"
-        logger.info(f"Risco moderado de enchente: Turbidez={turbidez}, Resíduos={residuos}")
+        logger.info(
+            f"Risco moderado de enchente: Turbidez={turbidez}, Resíduos={residuos}")
     else:
         risk_level = "Risco Baixo"
         css_class = "status-good"
         logger.debug("Risco baixo de enchente")
-    
+
     return risk_level, css_class
+
 
 def dashboard(request):
     """
     View principal do dashboard.
     """
-    logger.info(f"Dashboard acessado por {request.user if request.user.is_authenticated else 'usuário anônimo'}")
-    
+    logger.info(
+        f"Dashboard acessado por {request.user if request.user.is_authenticated else 'usuário anônimo'}")
+
     try:
         # A função get_sensor_data agora é get_firebase_sensor_data e já retorna os dados formatados
         valores_sensores = get_firebase_sensor_data()
         logger.debug("Dados dos sensores obtidos para dashboard")
-        
+
         # CORREÇÃO: Usando test_connection() no lugar de is_connected()
         firebase_connected = firebase_service.test_connection()
-        
+
         # CORREÇÃO: Definindo as variáveis que faltavam
         data_source = 'firebase' if firebase_connected and valores_sensores else 'fallback'
         device_status = firebase_service.get_device_status("ESP32_SIMULATOR")
@@ -732,7 +761,8 @@ def dashboard(request):
         if valores_sensores and 'timestamp' in valores_sensores:
             try:
                 # O timestamp já vem no formato ISO
-                data_time_obj = datetime.fromisoformat(valores_sensores['timestamp']).replace(tzinfo=None)
+                data_time_obj = datetime.fromisoformat(
+                    valores_sensores['timestamp']).replace(tzinfo=None)
                 # Compara com o tempo atual (ingênuo)
                 if (datetime.now() - data_time_obj).total_seconds() > 300:
                     data_age = 'antigo'
@@ -740,23 +770,22 @@ def dashboard(request):
                 data_age = 'desconhecido'
 
         # Higieniza os dados para o cálculo do IQA
-        valores_seguros_para_iqa = _sanitize_sensor_values_for_iqa(valores_sensores)
-        
-        # --- CORREÇÃO 2: Adicionando log para depurar o IQA ---
-        logger.debug(f"Valores enviados para o cálculo do IQA: {valores_seguros_para_iqa}")
+        valores_seguros_para_iqa = _sanitize_sensor_values_for_iqa(
+            valores_sensores)
 
+        # --- CORREÇÃO 2: Adicionando log para depurar o IQA ---
+        logger.debug(
+            f"Valores enviados para o cálculo do IQA: {valores_seguros_para_iqa}")
 
         calculator = IQACalculator()
-        iqa_valor, subindices = calculator.calcular_IQA(valores_seguros_para_iqa)
+        iqa_valor, subindices = calculator.calcular_IQA(
+            valores_seguros_para_iqa)
         classificacao, css_class = calculator.classificar_IQA(iqa_valor)
         alertas = calculator.get_parametros_alertas(valores_sensores)
 
-        
-          
         # Avaliar risco de enchente
         flood_risk, flood_css = get_flood_risk_assessment(valores_sensores)
-        
-        
+
         context = {
             'sensor_data': {
                 'temperatura': valores_sensores.get('Temperatura'),
@@ -773,11 +802,11 @@ def dashboard(request):
             'flood_risk': flood_risk,
             'last_update': timezone.now(),
             'firebase_connected': firebase_connected,
-            'data_source': data_source, # Variável agora definida
-            'device_status': device_status, # Variável agora definida
+            'data_source': data_source,  # Variável agora definida
+            'device_status': device_status,  # Variável agora definida
             'data_age': data_age
         }
-        
+
         if request.user.is_authenticated:
             context.update({
                 'user': request.user,
@@ -786,11 +815,13 @@ def dashboard(request):
                 'date_joined': request.user.date_joined,
                 'last_login': request.user.last_login,
             })
-            logger.debug(f"Dashboard carregado para usuário autenticado: {request.user.username}")
-        
-        logger.info(f"Dashboard renderizado com sucesso (fonte: {data_source})")
+            logger.debug(
+                f"Dashboard carregado para usuário autenticado: {request.user.username}")
+
+        logger.info(
+            f"Dashboard renderizado com sucesso (fonte: {data_source})")
         return render(request, 'iotmonitor/dashboard.html', context)
-        
+
     except Exception as e:
         logger.error(f"Erro crítico no dashboard: {e}", exc_info=True)
         # Contexto de fallback...
@@ -817,9 +848,9 @@ def dashboard_api(request):
         calculator = IQACalculator()
         iqa_valor, subindices = calculator.calcular_IQA(valores_sensores)
         classificacao, css_class = calculator.classificar_IQA(iqa_valor)
-        
+
         flood_risk, flood_css = get_flood_risk_assessment(valores_sensores)
-        
+
         data = {
             'success': True,
             'timestamp': timezone.now().isoformat(),
@@ -838,14 +869,15 @@ def dashboard_api(request):
             },
             'iqa': {'valor': round(iqa_valor, 2), 'classificacao': classificacao, 'css_class': css_class},
             'flood_risk': {'level': flood_risk, 'css_class': flood_css},
-            'device_status': device_status # Variável agora definida
+            'device_status': device_status  # Variável agora definida
         }
-        
+
         return JsonResponse(data)
-        
+
     except Exception as e:
         logger.error(f"Erro na API do dashboard: {e}", exc_info=True)
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -856,13 +888,13 @@ def update_sensor_values(request):
     """
     try:
         data = json.loads(request.body)
-        
+
         # Aqui você implementaria a lógica para salvar novos valores
         # Por exemplo, salvando em um modelo Django
-        
+
         # Exemplo de como seria:
         # from .models import SensorReading
-        # 
+        #
         # new_reading = SensorReading(
         #     coliformes=data.get('coliformes'),
         #     ph=data.get('ph'),
@@ -871,16 +903,16 @@ def update_sensor_values(request):
         #     timestamp=timezone.now()
         # )
         # new_reading.save()
-        
+
         logger.info(f"Valores de sensores atualizados: {data}")
         return JsonResponse({'success': True, 'message': 'Valores atualizados'})
-        
+
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
     except Exception as e:
         logger.error(f"Erro ao atualizar sensores: {e}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
+
 
 @require_http_methods(["GET"])
 def firebase_test(request):
@@ -897,30 +929,32 @@ def firebase_test(request):
             'credentials_source': 'JSON' if getattr(settings, 'FIREBASE_CREDENTIALS_JSON', None) else 'FILE' if getattr(settings, 'FIREBASE_CREDENTIALS_PATH', None) else 'NONE',
             'debug_mode': settings.DEBUG
         }
-        
+
         # Tentar obter dados de teste
         if firebase_service.initialized:
             try:
                 test_data = firebase_service.get_sensor_data("ESP32_001")
                 test_results['test_data_available'] = test_data is not None
-                test_results['test_data_timestamp'] = test_data.get('timestamp') if test_data else None
-                
+                test_results['test_data_timestamp'] = test_data.get(
+                    'timestamp') if test_data else None
+
                 # Tentar obter dispositivos
                 devices = firebase_service.get_all_devices()
                 test_results['devices_found'] = len(devices) if devices else 0
-                test_results['device_list'] = list(devices.keys()) if devices else []
-                
+                test_results['device_list'] = list(
+                    devices.keys()) if devices else []
+
             except Exception as e:
                 test_results['firebase_error'] = str(e)
-        
+
         # Log dos resultados
         firebase_logger.info(f"Teste Firebase executado: {test_results}")
-        
+
         return JsonResponse({
             'success': True,
             'results': test_results
         })
-        
+
     except Exception as e:
         logger.error(f"Erro no teste Firebase: {e}")
         return JsonResponse({
@@ -928,6 +962,7 @@ def firebase_test(request):
             'error': str(e),
             'timestamp': timezone.now().isoformat()
         }, status=500)
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -941,14 +976,14 @@ def firebase_sync_data(request):
                 'success': False,
                 'error': 'Firebase não inicializado'
             }, status=503)
-        
+
         # Obter dados mais recentes do banco local
         from .models import SensorReading
         recent_readings = SensorReading.objects.order_by('-timestamp')[:10]
-        
+
         synced_count = 0
         errors = []
-        
+
         for reading in recent_readings:
             sensor_data = {
                 'Coliformes': reading.coliformes,
@@ -961,7 +996,7 @@ def firebase_sync_data(request):
                 'Residuos': reading.residuos,
                 'OD': reading.od,
             }
-            
+
             try:
                 if save_firebase_sensor_data(sensor_data, reading.device_id):
                     synced_count += 1
@@ -969,17 +1004,64 @@ def firebase_sync_data(request):
                     errors.append(f"Falha ao sincronizar leitura {reading.id}")
             except Exception as e:
                 errors.append(f"Erro na leitura {reading.id}: {str(e)}")
-        
+
         return JsonResponse({
             'success': True,
             'synced_count': synced_count,
             'total_readings': len(recent_readings),
             'errors': errors
         })
-        
+
     except Exception as e:
         logger.error(f"Erro na sincronização Firebase: {e}")
         return JsonResponse({
             'success': False,
             'error': str(e)
         }, status=500)
+
+def historical_data_api(request, sensor_parameter: str):
+    """
+    API que retorna dados históricos para um parâmetro de sensor específico.
+    """
+    # Mapeia o nome do parâmetro da URL para a chave no nosso dicionário de dados
+    PARAM_MAP = {
+        'temperatura': 'Temperatura',
+        'ph': 'pH',
+        'oxigenio': 'OD',
+        'dbo': 'DBO',
+        'coliformes': 'Coliformes',
+        'nitrogenio': 'NT',
+        'fosforo': 'FT',
+        'turbidez': 'Turbidez',
+        'solidos': 'Residuos'
+    }
+
+    data_key = PARAM_MAP.get(sensor_parameter.lower())
+    if not data_key:
+        return JsonResponse({'success': False, 'error': 'Parâmetro de sensor inválido'}, status=400)
+
+    # Busca todo o histórico de leituras
+    all_leituras = get_all_firebase_leituras()
+
+    if not all_leituras:
+        return JsonResponse({'success': False, 'error': 'Nenhum dado histórico encontrado'}, status=404)
+
+    # Extrai os dados para o gráfico (labels e valores)
+    labels = []
+    data_points = []
+
+    # Ordena por data
+    for leitura in sorted(all_leituras, key=lambda x: x['timestamp']):
+        # Formata o timestamp para exibir apenas a hora no gráfico
+        timestamp_obj = datetime.fromisoformat(leitura['timestamp'])
+        labels.append(timestamp_obj.strftime('%H:%M:%S'))
+
+        # Pega o valor do sensor solicitado
+        data_points.append(leitura.get(data_key))
+
+    response_data = {
+        'success': True,
+        'labels': labels,
+        'data': data_points
+    }
+    return JsonResponse(response_data)

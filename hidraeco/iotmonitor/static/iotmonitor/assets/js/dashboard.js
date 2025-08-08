@@ -1,9 +1,11 @@
 class HidraDashboard {
     constructor(initialData) {
-        this.updateInterval = 10000; // Atualizar a cada 10 segundos
-        this.chart = null;
+        this.updateInterval = 10000;
+        this.chart = null; // Gráfico principal de tendência
+        this.historicalChart = null; // Gráfico do modal
         this.map = null;
-        this.initialData = initialData; // Dados iniciais do Django
+        this.initialData = initialData;
+        this.modalInstance = null;
 
         this.init();
     }
@@ -11,10 +13,107 @@ class HidraDashboard {
     init() {
         document.addEventListener('DOMContentLoaded', () => {
             this.initMap();
-            this.initChart();
+            this.initTrendChart(); // Renomeado para maior clareza
             this.startAutoUpdate();
             this.bindEvents();
             this.animateCards();
+
+            // Inicializa o modal do Bootstrap
+            const modalEl = document.getElementById('historicalChartModal');
+            if (modalEl) {
+                this.modalInstance = new bootstrap.Modal(modalEl);
+            }
+        });
+    }
+
+    bindSensorCardClicks() {
+        const sensorCards = document.querySelectorAll('.sensor-card');
+        sensorCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const sensorParam = card.dataset.sensorCard;
+                const sensorName = card.dataset.sensorName;
+                const sensorUnit = card.dataset.sensorUnit;
+                if (sensorParam) {
+                    this.openHistoricalChart(sensorParam, sensorName, sensorUnit);
+                }
+            });
+        });
+    }
+
+    async openHistoricalChart(sensorParam, sensorName, sensorUnit) {
+        if (!this.modalInstance) return;
+
+        // Mostra o modal e o indicador de loading
+        const modalTitle = document.getElementById('historicalChartModalLabel');
+        const loadingIndicator = document.getElementById('chart-loading-indicator');
+        const chartContainer = document.querySelector('#historicalChartModal .chart-container');
+        
+        modalTitle.textContent = `Histórico de ${sensorName}`;
+        loadingIndicator.style.display = 'block';
+        chartContainer.style.display = 'none';
+        this.modalInstance.show();
+
+        try {
+            // Faz a chamada à nova API
+            const response = await fetch(`/api/historical_data/${sensorParam}/`);
+            const result = await response.json();
+
+            if (result.success) {
+                this.renderHistoricalChart(result.labels, result.data, sensorName, sensorUnit);
+                loadingIndicator.style.display = 'none';
+                chartContainer.style.display = 'block';
+            } else {
+                loadingIndicator.innerHTML = `<p class="text-danger">Erro ao carregar dados: ${result.error || 'Tente novamente.'}</p>`;
+            }
+        } catch (error) {
+            console.error('Fetch error for historical data:', error);
+            loadingIndicator.innerHTML = '<p class="text-danger">Erro de conexão ao buscar o histórico.</p>';
+        }
+    }
+
+    renderHistoricalChart(labels, data, sensorName, sensorUnit) {
+        const ctx = document.getElementById('historicalChart').getContext('2d');
+
+        // Destrói o gráfico anterior, se existir
+        if (this.historicalChart) {
+            this.historicalChart.destroy();
+        }
+
+        this.historicalChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: `${sensorName} (${sensorUnit})`,
+                    data: data,
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.1,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#007bff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Horário da Leitura' }
+                    },
+                    y: {
+                        title: { display: true, text: `Valor (${sensorUnit})` },
+                        beginAtZero: false
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
         });
     }
 
@@ -36,7 +135,7 @@ class HidraDashboard {
         `).openPopup();
     }
 
-    initChart() {
+    initTrendChart() {
         const ctx = document.getElementById('trendChart').getContext('2d');
         const labels = ['-50s', '-40s', '-30s', '-20s', '-10s', 'Agora'];
 
@@ -72,7 +171,7 @@ class HidraDashboard {
         });
     }
 
-    updateChart(parameter) {
+    updateTrendChart(parameter) {
         // Esta função pode ser expandida para buscar dados históricos
         // Por agora, ela apenas troca o tipo de dado exibido como antes
         const chartConfigs = {
@@ -239,13 +338,16 @@ class HidraDashboard {
     }
 
     bindEvents() {
-        // O template já tem o onclick, mas essa é uma forma mais limpa
+        // Bind para os botões do gráfico de tendência
         document.querySelectorAll('.chart-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const parameter = e.target.getAttribute('onclick').match(/'([^']+)'/)[1];
-                this.updateChart(parameter);
+                this.updateTrendChart(parameter);
             });
         });
+
+        // Bind para os cards de sensores
+        this.bindSensorCardClicks();
     }
 }
 
@@ -254,5 +356,5 @@ const hidraDashboard = new HidraDashboard(initialSensorData);
 
 // Função global para compatibilidade com o `onclick` do template
 function updateChart(parameter) {
-    hidraDashboard.updateChart(parameter);
+    hidraDashboard.updateTrendChart(parameter);
 }

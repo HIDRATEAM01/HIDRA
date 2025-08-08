@@ -195,10 +195,51 @@ class FirebaseService:
             'status': 'desconhecido',
             'last_seen': 'Nunca'
         }
+    # --- NOVO MÉTODO PARA BUSCAR O HISTÓRICO ---
+    def get_all_leituras(self) -> list[Dict[str, Any]]:
+        """
+        Obtém TODAS as leituras do nó /leituras e as retorna como uma lista.
+        """
+        if not self.initialized:
+            firebase_logger.warning("Firebase não inicializado, impossível buscar histórico.")
+            return []
+        
+        try:
+            # Tenta buscar do cache primeiro para aliviar o Firebase
+            cache_key = 'firebase_all_leituras'
+            cached_data = cache.get(cache_key)
+            if cached_data:
+                firebase_logger.debug("Histórico de leituras obtido do cache.")
+                return cached_data
 
-    # O restante das funções (save_sensor_data, get_historical_data, etc.)
-    # pode ser mantido para outras finalidades ou futuras implementações.
-    # Elas operam na estrutura /sensors/ e não na /leituras/.
+            leituras_ref = self.db_ref.child('leituras')
+            all_readings_raw = leituras_ref.order_by_key().get()
+
+            if not all_readings_raw or not isinstance(all_readings_raw, dict):
+                firebase_logger.warning("Nenhum dado histórico encontrado em /leituras.")
+                return []
+
+            # Processa cada leitura e a adiciona a uma lista
+            formatted_list = []
+            for id_leitura, raw_data in all_readings_raw.items():
+                if isinstance(raw_data, dict):
+                    try:
+                        formatted_data = self._format_leitura_data(raw_data)
+                        formatted_list.append(formatted_data)
+                    except Exception as e:
+                        firebase_logger.warning(f"Erro ao formatar leitura histórica #{id_leitura}: {e}")
+            
+            # Salva a lista no cache por 60 segundos
+            cache.set(cache_key, formatted_list, 60)
+            
+            firebase_logger.info(f"{len(formatted_list)} leituras históricas processadas com sucesso.")
+            return formatted_list
+
+        except Exception as e:
+            firebase_logger.error(f"Erro crítico ao obter histórico de leituras: {e}", exc_info=True)
+            return []
+
+
 # Instância global do serviço (deve vir DEPOIS da definição da classe)
 firebase_service = FirebaseService()
 
@@ -226,6 +267,18 @@ def get_firebase_sensor_data() -> Optional[Dict[str, float]]:
             'Coliformes': 0, 'pH': 7.0, 'DBO': 0, 'NT': 0, 'FT': 0,
             'Temperatura': 25, 'Turbidez': 0, 'Residuos': 0, 'OD': 0
         }
+    
+# --- NOVA FUNÇÃO AUXILIAR GLOBAL ---
+def get_all_firebase_leituras() -> list[Dict[str, Any]]:
+    """
+    Função auxiliar global para obter todo o histórico de leituras.
+    """
+    try:
+        return firebase_service.get_all_leituras()
+    except Exception as e:
+        logger.error(f"Erro ao chamar get_all_leituras: {e}", exc_info=True)
+        return []
+
 
 # Instância global do serviço
 firebase_service = FirebaseService()
@@ -242,3 +295,4 @@ def save_firebase_sensor_data(sensor_data: Dict[str, Any], device_id: str = "ESP
     except Exception as e:
         logger.error(f"Erro ao salvar dados no Firebase: {e}")
         return False
+    
