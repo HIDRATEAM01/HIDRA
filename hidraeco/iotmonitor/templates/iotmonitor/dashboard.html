@@ -610,24 +610,8 @@
     </div>
 </div>
 
-<div class="sensor-card" 
-         data-sensor-card="temperatura"
-         data-sensor-name="Temperatura da Água"
-         data-sensor-unit="°C">
-        <div class="sensor-icon"><i class="fas fa-thermometer-half"></i></div>
-        <div class="sensor-name">Temperatura da Água</div>
-        <div class="sensor-value" data-sensor-value="temperatura">{{ sensor_data.temperatura|floatformat:1 }}</div>
-        <div class="sensor-unit">°C</div>
-    </div>
-    <div class="sensor-card" 
-         data-sensor-card="ph"
-         data-sensor-name="pH"
-         data-sensor-unit="pH">
-         </div>
-    <div class="last-update">
-        <i class="fas fa-clock"></i> Última atualização: <span id="last-update-time">{{ last_update|date:"d/m/Y H:i" }}</span>
-    </div>
-</div> <div class="modal fade" id="historicalChartModal" tabindex="-1" aria-labelledby="historicalChartModalLabel" aria-hidden="true">
+
+<div class="modal fade" id="historicalChartModal" tabindex="-1" aria-labelledby="historicalChartModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
