@@ -40,7 +40,7 @@ FIREBASE_DATABASE_URL = os.environ.get(
 )
 
 # True = Local X #False = Produção
-DEBUG = True
+DEBUG = False
 
 # Configurações automáticas baseadas no DEBUG
 if DEBUG:
