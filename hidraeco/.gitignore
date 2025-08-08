@@ -162,3 +162,5 @@ dmypy.json
 cython_debug/
 
 
+hidra-eco-firebase-adminsdk-fbsvc-e8d6447316.json
+*.json

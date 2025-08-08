@@ -19,11 +19,15 @@ urlpatterns = [
     path('check-username/', views.check_username, name='check_username'),
     path('check-email/', views.check_email, name='check_email'),
     # # API JSON para o dashboard (AJAX) com IQA
-    path('api/dashboard/', views.dashboard_api, name='dashboard_api'),
+    path('dashboard_api/', views.dashboard_api, name='dashboard_api'),
     path('api/update-sensors/', views.update_sensor_values, name='update_sensors'),
-    # API para o ESP32/ESP8266
-    path('api/sensors/data/', views.esp_sensor_data, name='esp_sensor_data'),
-    path('api/sensors/heartbeat/', views.esp_heartbeat, name='esp_heartbeat'),   
     # Endpoint para testes (remover em produção)
     path('api/sensors/test/', views.update_sensor_values, name='update_sensor_values'),
+
+    # APIs
+    path('api/sensor-data/', views.esp_sensor_data, name='esp_sensor_data'),
+    path('api/heartbeat/', views.esp_heartbeat, name='esp_heartbeat'),
+    # Novas rotas para Firebase
+    path('api/firebase-test/', views.firebase_test, name='firebase_test'),
+    path('api/firebase-sync/', views.firebase_sync_data, name='firebase_sync'),
 ]

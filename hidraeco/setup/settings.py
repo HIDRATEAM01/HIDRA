@@ -12,7 +12,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+import json
+import firebase_admin
+from firebase_admin import credentials
 # import dj_database_url
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,13 +25,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 LOGS_DIR = BASE_DIR / 'logs'
 LOGS_DIR.mkdir(exist_ok=True)
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-s%5w70mp^bo0#9vc5pm2(s10pwinu*0$nle3nh88-a#sr87lj7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+
+
+# URL do Firebase Realtime Database
+FIREBASE_DATABASE_URL = os.environ.get(
+    'FIREBASE_DATABASE_URL',
+    'https://hidra-eco-default-rtdb.firebaseio.com/'
+)
 
 # True = Local X #False = Produção
 DEBUG = True
@@ -35,7 +45,7 @@ DEBUG = True
 # Configurações automáticas baseadas no DEBUG
 if DEBUG:
     # ========== CONFIGURAÇÕES LOCAIS ==========
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
     DATABASES = {
         'default': {
@@ -62,6 +72,11 @@ if DEBUG:
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
+
+    # Firebase - Desenvolvimento (usar arquivo local)
+    FIREBASE_CREDENTIALS_PATH = BASE_DIR / \
+        'hidra-eco-firebase-adminsdk-fbsvc-e8d6447316.json'
+    FIREBASE_CREDENTIALS_JSON = None
 
 else:
     # ========== CONFIGURAÇÕES DE PRODUÇÃO ==========
@@ -96,7 +111,7 @@ else:
         "https://www.hidra-eco.com.br",
         "https://hidra-eco.onrender.com",
     ]
-    
+
     # Permitir headers necessários para ESP32
     CORS_ALLOW_HEADERS = [
         'accept',
@@ -120,24 +135,35 @@ else:
         'PUT',
     ]
 
-     # ========== CONFIGURAÇÕES DE SEGURANÇA HTTPS ==========
+    # Firebase - Produção (usar variável de ambiente)
+    FIREBASE_CREDENTIALS_PATH = None
+    FIREBASE_CREDENTIALS_JSON = os.environ.get('FIREBASE_CREDENTIALS_JSON')
+
+    # Configurações de segurança HTTPS
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    
+
     # Configuração para arquivos estáticos em produção
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+
 # ========== CONFIGURAÇÃO ESPECIAL PARA APIs DO ESP32 ==========
-# Para permitir que ESP32 acesse APIs sem CSRF token
+# ==================== CSRF PARA APIs DO ESP32 ====================
 CSRF_TRUSTED_ORIGINS = [
     "https://hidra-eco.com.br",
     "https://www.hidra-eco.com.br",
     "https://hidra-eco.onrender.com",
 ]
+
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend([
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ])
 
 ########## ########## ########## ########## ########## ########## CONFIGURAR ########## ########## ########## ########## ########## ##########
 
@@ -231,7 +257,7 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+'''
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -246,7 +272,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
+'''
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -285,17 +311,22 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/login/'
 
-# Configurações de segurança
-SESSION_COOKIE_SECURE = False  # True apenas em produção com HTTPS
+# Configurações de segurança para sessões e cookies
+if DEBUG:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-CSRF_COOKIE_SECURE = False  # True apenas em produção com HTTPS
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Configurações de senha
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -313,12 +344,61 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+# ==================== CONFIGURAÇÕES DE EMAIL ====================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'hidrateams@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get(
+    'EMAIL_HOST_PASSWORD', 'qyhc pbkd nbgp wpbf')
+DEFAULT_FROM_EMAIL = f'HIDRA <{EMAIL_HOST_USER}>'
 
-# Logging
+# ==================== CONFIGURAÇÕES DE CACHE ====================
+# Cache para dados dos sensores e Firebase
+if DEBUG:
+    # Cache em memória para desenvolvimento
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'sensor-data-cache',
+            'TIMEOUT': 300,  # 5 minutos
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000,
+            }
+        }
+    }
+else:
+    # Cache Redis para produção (se disponível)
+    REDIS_URL = os.environ.get('REDIS_URL')
+    if REDIS_URL:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': REDIS_URL,
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                }
+            }
+        }
+    else:
+        # Fallback para cache em memória
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+                'LOCATION': 'sensor-data-cache',
+                'TIMEOUT': 300,
+                'OPTIONS': {
+                    'MAX_ENTRIES': 1000,
+                }
+            }
+        }
+
+
+# ==================== CONFIGURAÇÕES DE LOGGING ====================
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    # ==================== FORMATADORES ====================
     'formatters': {
         'verbose': {
             'format': '[{levelname}] {asctime} | {name} | {module}.{funcName}:{lineno} | {message}',
@@ -330,37 +410,18 @@ LOGGING = {
             'style': '{',
             'datefmt': '%H:%M:%S',
         },
-        'sensor_format': {
-            'format': '[SENSOR] {asctime} | {levelname} | Device: {device_id} | {message}',
+        'firebase_format': {
+            'format': '[FIREBASE] {asctime} | {levelname} | {message}',
             'style': '{',
             'datefmt': '%Y-%m-%d %H:%M:%S',
         },
     },
-    # ==================== FILTROS ====================
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
-    },
-    
-    # ==================== HANDLERS ====================
     'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': 'auth.log',
-            'formatter': 'verbose',
-        },
         'console': {
-            'level': 'DEBUG',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
-            'filters': ['require_debug_true'],
         },
-        # Arquivo geral do Django
         'django_file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -369,8 +430,14 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'verbose',
         },
-        
-        # Arquivo específico para sensores
+        'firebase_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'firebase.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB
+            'backupCount': 10,
+            'formatter': 'firebase_format',
+        },
         'sensor_file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -379,8 +446,6 @@ LOGGING = {
             'backupCount': 10,
             'formatter': 'verbose',
         },
-        
-        # Arquivo para erros críticos
         'error_file': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -389,8 +454,6 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'verbose',
         },
-        
-        # Arquivo para dados dos ESP32/ESP8266
         'esp_data_file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -399,8 +462,6 @@ LOGGING = {
             'backupCount': 15,
             'formatter': 'verbose',
         },
-        
-        # Arquivo para alertas
         'alerts_file': {
             'level': 'WARNING',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -409,68 +470,49 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'verbose',
         },
-        
-        # Handler para email em caso de erro crítico (opcional)
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
-            'filters': ['require_debug_false'],
-            'formatter': 'verbose',
-        },
     },
-    # ==================== LOGGERS ====================
     'loggers': {
-        # Logger raiz do Django
         'django': {
             'handlers': ['console', 'django_file'],
             'level': 'INFO',
             'propagate': True,
         },
-        
-        # Logger para erros do Django
         'django.request': {
-            'handlers': ['console', 'error_file', 'mail_admins'],
+            'handlers': ['console', 'error_file'],
             'level': 'ERROR',
             'propagate': False,
         },
-        
-        # Logger para sua aplicação (substitua 'iotmonitor' pelo nome do seu app)
         'iotmonitor': {
             'handlers': ['console', 'sensor_file'],
-            'level': 'DEBUG',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         },
-        
-        # Logger específico para dados dos sensores
+        'firebase': {
+            'handlers': ['console', 'firebase_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'sensors': {
             'handlers': ['console', 'esp_data_file'],
             'level': 'INFO',
             'propagate': False,
         },
-        
-        # Logger para alertas
         'alerts': {
             'handlers': ['console', 'alerts_file'],
             'level': 'WARNING',
             'propagate': False,
         },
-        
-        # Logger para IQA (Índice de Qualidade da Água)
         'iqa': {
             'handlers': ['console', 'sensor_file'],
             'level': 'INFO',
             'propagate': False,
         },
-        
-        # Logger para conexões ESP32
         'esp_connection': {
             'handlers': ['console', 'esp_data_file'],
-            'level': 'DEBUG',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
     },
-    
-    # Logger raiz
     'root': {
         'level': 'INFO',
         'handlers': ['console', 'error_file'],
@@ -486,14 +528,72 @@ EMAIL_HOST_USER = 'hidrateams@gmail.com'
 EMAIL_HOST_PASSWORD = 'qyhc pbkd nbgp wpbf'
 DEFAULT_FROM_EMAIL = 'HIDRA <hidrateams@gmail.com>'
 
-# Cache (para armazenar dados dos sensores temporariamente)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'sensor-data-cache',
-        'TIMEOUT': 300,  # 5 minutos
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
+# ==================== CONFIGURAÇÕES DE CACHE ====================
+if DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'sensor-data-cache',
+            'TIMEOUT': 300,  # 5 minutos
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000,
+            }
         }
     }
-}
+else:
+    # Tentar usar Redis em produção se disponível
+    REDIS_URL = os.environ.get('REDIS_URL')
+    if REDIS_URL:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': REDIS_URL,
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                }
+            }
+        }
+    else:
+        # Fallback para cache em memória
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+                'LOCATION': 'sensor-data-cache',
+                'TIMEOUT': 300,
+                'OPTIONS': {
+                    'MAX_ENTRIES': 1000,
+                }
+            }
+        }
+
+
+# Configuração do Firebase
+if not firebase_admin._apps:
+    if os.getenv('FIREBASE_CREDENTIALS'):
+        # Produção - usando variável de ambiente no Render
+        firebase_credentials = json.loads(os.getenv('FIREBASE_CREDENTIALS'))
+        cred = credentials.Certificate(firebase_credentials)
+    else:
+        # Desenvolvimento - usando arquivo local
+        cred = credentials.Certificate(
+            'hidra-eco-firebase-adminsdk-fbsvc-e8d6447316.json')
+
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': 'https://hidra-eco-default-rtdb.firebaseio.com/'
+    })
+
+# Configuração do Firebase Realtime Database
+FIREBASE_DATABASE_URL = 'https://hidra-eco-default-rtdb.firebaseio.com/'
+
+# ==================== CONFIGURAÇÕES ESPECÍFICAS PARA ESP32 ====================
+# Timeout para requisições dos sensores
+SENSOR_REQUEST_TIMEOUT = 30  # segundos
+
+# Intervalo mínimo entre leituras dos sensores (para evitar spam)
+SENSOR_MIN_INTERVAL = 10  # segundos
+
+# Número máximo de tentativas de reconexão Firebase
+FIREBASE_MAX_RETRIES = 3
+
+# Tempo de cache para dados dos sensores
+SENSOR_CACHE_TIMEOUT = 60  # 1 minuto

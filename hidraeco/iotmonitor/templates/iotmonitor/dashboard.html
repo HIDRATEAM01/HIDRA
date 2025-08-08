@@ -72,23 +72,19 @@
         <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container-fluid px-3 px-lg-4">
 
-                <!-- Logo -->
                 <a href="{% url 'homepage' %}" class="navbar-brand d-flex align-items-center">
                     <div class="logo-container me-2">
                         <h1 class="sitename">HIDRA</h1>
                     </div>
                 </a>
 
-                <!-- Botão de colapso -->
                 <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
                     aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <!-- Menu de navegação -->
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <!-- Links de navegação centralizados -->
                     <ul class="navbar-nav mx-auto">
                         <li class="nav-item">
                             <a class="nav-link nav-menu-item" href="{% url 'homepage' %}">Home</a>
@@ -110,10 +106,8 @@
                         </li>
                     </ul>
 
-                    <!-- Seção de ações do usuário -->
                     <div class="d-flex align-items-center gap-2">
                         {% if user.is_authenticated %}
-                        <!-- User dropdown -->
                         <div class="dropdown">
                             <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center px-3"
                                 type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -150,7 +144,6 @@
                             </ul>
                         </div>
 
-                        <!-- Notification button -->
                         <button class="btn btn-outline-light btn-sm position-relative" type="button"
                             onclick="alert('Funcionalidade em desenvolvimento')">
                             <i class="fas fa-bell"></i>
@@ -162,14 +155,12 @@
                             </span>
                         </button>
 
-                        <!-- Help button -->
                         <button class="btn btn-outline-light btn-sm" type="button"
                             onclick="alert('Central de ajuda em desenvolvimento')">
                             <i class="fas fa-question-circle"></i>
                         </button>
 
                         {% else %}
-                        <!-- Login/Register buttons for non-authenticated -->
                         <div class="d-flex gap-2">
                             <a class="btn btn-outline-light btn-sm px-3" href="{% url 'login' %}">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login
@@ -487,36 +478,28 @@
         </div>
     </div>
 
-    <!-- Display do IQA -->
-    <!-- <div class="iqa-display {{ iqa.css_class }}">
-        <div class="iqa-value">{{ iqa.valor }}</div>
-        <div class="iqa-classification">{{ iqa.classificacao }}</div>
-        <div style="font-size: 0.9rem; margin-top: 10px;">Índice de Qualidade da Água</div>
-    </div> -->
-
-    <!-- Cards de Status Principal -->
     <div class="dashboard-grid">
-        <div
+        <div id="quality-status-card"
             class="card status-card {% if iqa.classificacao == 'Ruim' %}danger{% elif iqa.classificacao == 'Péssima' %}danger{% elif iqa.classificacao == 'Regular' %}warning{% endif %}">
             <div class="status-icon">
                 <i class="fas fa-water"></i>
             </div>
             <div class="status-title">Qualidade da Água</div>
             <div class="status-value">
-                <div class="iqa-value">{{ iqa.valor }}</div>
+                <div class="iqa-value" data-iqa="value">{{ iqa.valor }}</div>
                 <div style="font-size: 0.9rem; margin-top: 10px;">Índice de Qualidade da Água</div>
                 <span class="status-indicator {{ iqa.css_class }}"></span>
-                {{ iqa.classificacao }}
+                <span data-iqa="classification">{{ iqa.classificacao }}</span>
             </div>
         </div>
 
-        <div
+        <div id="flood-status-card"
             class="card status-card {% if flood_risk == 'Risco Alto' %}danger{% elif flood_risk == 'Risco Moderado' %}warning{% endif %}">
             <div class="status-icon">
                 <i class="fas fa-cloud-rain"></i>
             </div>
             <div class="status-title">Risco de Enchente</div>
-            <div class="status-value">
+            <div class="status-value" data-flood-risk="level">
                 <span
                     class="status-indicator {% if flood_risk == 'Risco Alto' %}status-critical{% elif flood_risk == 'Risco Moderado' %}status-warning{% else %}status-good{% endif %}"></span>
                 {{ flood_risk }}
@@ -524,81 +507,71 @@
         </div>
     </div>
 
-    <!-- Grade de Sensores -->
     <div class="sensors-grid">
-        <div
-            class="sensor-card {% if sensor_data.temperatura > 30 %}alert{% elif sensor_data.temperatura > 35 %}danger{% endif %}">
+        <div class="sensor-card" data-sensor-card="temperatura">
             <div class="sensor-icon"><i class="fas fa-thermometer-half"></i></div>
             <div class="sensor-name">Temperatura da Água</div>
-            <div class="sensor-value">{{ sensor_data.temperatura|floatformat:1 }}</div>
+            <div class="sensor-value" data-sensor-value="temperatura">{{ sensor_data.temperatura|floatformat:1 }}</div>
             <div class="sensor-unit">°C</div>
         </div>
 
-        <div
-            class="sensor-card {% if sensor_data.ph < 6 or sensor_data.ph > 9 %}danger{% elif sensor_data.ph < 6.5 or sensor_data.ph > 8.5 %}alert{% endif %}">
+        <div class="sensor-card" data-sensor-card="ph">
             <div class="sensor-icon"><i class="fas fa-vial"></i></div>
             <div class="sensor-name">pH</div>
-            <div class="sensor-value">{{ sensor_data.ph|floatformat:1 }}</div>
+            <div class="sensor-value" data-sensor-value="ph">{{ sensor_data.ph|floatformat:1 }}</div>
             <div class="sensor-unit">pH</div>
         </div>
 
-        <div
-            class="sensor-card {% if sensor_data.oxigenio < 4 %}danger{% elif sensor_data.oxigenio < 6 %}alert{% endif %}">
+        <div class="sensor-card" data-sensor-card="oxigenio">
             <div class="sensor-icon"><i class="fas fa-lungs"></i></div>
             <div class="sensor-name">Oxigênio Dissolvido</div>
-            <div class="sensor-value">{{ sensor_data.oxigenio|floatformat:1 }}</div>
+            <div class="sensor-value" data-sensor-value="oxigenio">{{ sensor_data.oxigenio|floatformat:1 }}</div>
             <div class="sensor-unit">mg/L</div>
         </div>
 
-        <div class="sensor-card {% if sensor_data.dbo > 10 %}danger{% elif sensor_data.dbo > 5 %}alert{% endif %}">
+        <div class="sensor-card" data-sensor-card="dbo">
             <div class="sensor-icon"><i class="fas fa-leaf"></i></div>
             <div class="sensor-name">DBO</div>
-            <div class="sensor-value">{{ sensor_data.dbo|floatformat:1 }}</div>
+            <div class="sensor-value" data-sensor-value="dbo">{{ sensor_data.dbo|floatformat:1 }}</div>
             <div class="sensor-unit">mg/L</div>
         </div>
 
-        <div
-            class="sensor-card {% if sensor_data.coliformes > 1000 %}danger{% elif sensor_data.coliformes > 100 %}alert{% endif %}">
+        <div class="sensor-card" data-sensor-card="coliformes">
             <div class="sensor-icon"><i class="fas fa-bacteria"></i></div>
             <div class="sensor-name">Coliformes Termotolerantes</div>
-            <div class="sensor-value">{{ sensor_data.coliformes|floatformat:0 }}</div>
+            <div class="sensor-value" data-sensor-value="coliformes">{{ sensor_data.coliformes|floatformat:0 }}</div>
             <div class="sensor-unit">NMP/100mL</div>
         </div>
 
-        <div
-            class="sensor-card {% if sensor_data.nitrogenio > 3.7 %}danger{% elif sensor_data.nitrogenio > 2.18 %}alert{% endif %}">
+        <div class="sensor-card" data-sensor-card="nitrogenio">
             <div class="sensor-icon"><i class="fas fa-atom"></i></div>
             <div class="sensor-name">Nitrogênio Total</div>
-            <div class="sensor-value">{{ sensor_data.nitrogenio|floatformat:2 }}</div>
+            <div class="sensor-value" data-sensor-value="nitrogenio">{{ sensor_data.nitrogenio|floatformat:2 }}</div>
             <div class="sensor-unit">mg/L</div>
         </div>
 
-        <div
-            class="sensor-card {% if sensor_data.fosforo > 0.15 %}danger{% elif sensor_data.fosforo > 0.1 %}alert{% endif %}">
+        <div class="sensor-card" data-sensor-card="fosforo">
             <div class="sensor-icon"><i class="fas fa-fire"></i></div>
             <div class="sensor-name">Fósforo Total</div>
-            <div class="sensor-value">{{ sensor_data.fosforo|floatformat:3 }}</div>
+            <div class="sensor-value" data-sensor-value="fosforo">{{ sensor_data.fosforo|floatformat:3 }}</div>
             <div class="sensor-unit">mg/L</div>
         </div>
 
-        <div
-            class="sensor-card {% if sensor_data.turbidez > 100 %}danger{% elif sensor_data.turbidez > 40 %}alert{% endif %}">
+        <div class="sensor-card" data-sensor-card="turbidez">
             <div class="sensor-icon"><i class="fas fa-eye"></i></div>
             <div class="sensor-name">Turbidez</div>
-            <div class="sensor-value">{{ sensor_data.turbidez|floatformat:1 }}</div>
+            <div class="sensor-value" data-sensor-value="turbidez">{{ sensor_data.turbidez|floatformat:1 }}</div>
             <div class="sensor-unit">NTU</div>
         </div>
 
-        <div
-            class="sensor-card {% if sensor_data.solidos > 500 %}danger{% elif sensor_data.solidos > 300 %}alert{% endif %}">
+        <div class="sensor-card" data-sensor-card="solidos">
             <div class="sensor-icon"><i class="fas fa-cubes"></i></div>
             <div class="sensor-name">Sólidos Totais</div>
-            <div class="sensor-value">{{ sensor_data.solidos|floatformat:0 }}</div>
+            <div class="sensor-value" data-sensor-value="solidos">{{ sensor_data.solidos|floatformat:0 }}</div>
             <div class="sensor-unit">mg/L</div>
         </div>
     </div>
 
-    <!-- Mapa e Gráfico -->
     <div class="main-content">
         <div class="map-container">
             <div class="section-title">
@@ -624,24 +597,19 @@
     </div>
 
     <div class="last-update">
-        <i class="fas fa-clock"></i> Última atualização: {{ last_update|date:"d/m/Y H:i" }}
+        <i class="fas fa-clock"></i> Última atualização: <span id="last-update-time">{{ last_update|date:"d/m/Y H:i" }}</span>
     </div>
 </div>
 
 <script>
-    // Passar dados do contexto Django para JavaScript
-    const sensorData = {
-        temperature: {{ sensor_data.temperatura }},
-    ph: { { sensor_data.ph } },
-    oxygen: { { sensor_data.oxigenio } },
-    turbidity: { { sensor_data.turbidez } },
-    iqa: { { iqa.valor } }
-};
-
-    // Auto-refresh a cada 5 minutos
-    setInterval(function () {
-        location.reload();
-    }, 300000);
+    // Passar dados iniciais do contexto Django para JavaScript
+    const initialSensorData = {
+        temperatura: {{ sensor_data.temperatura|default:0 }},
+        ph: {{ sensor_data.ph|default:7 }},
+        oxigenio: {{ sensor_data.oxigenio|default:0 }},
+        turbidez: {{ sensor_data.turbidez|default:0 }},
+        iqa: {{ iqa.valor|default:0 }}
+    };
 </script>
 {% endblock %}
 
