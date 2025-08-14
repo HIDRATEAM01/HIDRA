@@ -1,0 +1,651 @@
+{% extends 'iotmonitor/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Qualidade da Água | HIDRA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" />
+<link rel="stylesheet" href="{% static 'iotmonitor/assets/css/dashboard.css' %}" />
+<style>
+    .status-excellent {
+        background-color: #28a745;
+    }
+
+    .status-good {
+        background-color: #28a745;
+    }
+
+    .status-warning {
+        background-color: #ffc107;
+    }
+
+    .status-bad {
+        background-color: #fd7e14;
+    }
+
+    .status-critical {
+        background-color: #dc3545;
+    }
+
+    .iqa-display {
+        text-align: center;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 10px;
+        color: white;
+        font-weight: bold;
+    }
+
+    .iqa-value {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .iqa-classification {
+        font-size: 1.2rem;
+        text-transform: uppercase;
+    }
+
+    .sensor-card.alert {
+        border-left: 4px solid #ffc107;
+    }
+
+    .sensor-card.danger {
+        border-left: 4px solid #dc3545;
+
+    }
+
+    .sensor-card {
+        border-left: 4px solid #28a745;
+    }
+</style>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+{% endblock %}
+
+{% block header %}
+<header>
+    <div id="header" class="header sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container-fluid px-3 px-lg-4">
+
+                <a href="{% url 'homepage' %}" class="navbar-brand d-flex align-items-center">
+                    <div class="logo-container me-2">
+                        <h1 class="sitename">HIDRA</h1>
+                    </div>
+                </a>
+
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item">
+                            <a class="nav-link nav-menu-item" href="{% url 'homepage' %}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-menu-item active" href="{% url 'dashboard' %}">
+                                <i class="fas fa-chart-bar me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-menu-item" href="{% url 'admin:index' %}">
+                                <i class="fas fa-cog me-1"></i>Admin
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-menu-item" href="https://hidra.online/" target="_blank">
+                                <i class="fas fa-external-link-alt me-1"></i>Dashboard 2
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="d-flex align-items-center gap-2">
+                        {% if user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center px-3"
+                                type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-2"></i>
+                                <span class="d-none d-md-inline">{{ user.username }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2 text-primary"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#"
+                                        onclick="alert('Funcionalidade em desenvolvimento')">
+                                        <i class="fas fa-user-cog me-2 text-muted"></i> Perfil
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#"
+                                        onclick="alert('Funcionalidade em desenvolvimento')">
+                                        <i class="fas fa-cog me-2 text-muted"></i> Configurações
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'logout' %}"
+                                        onclick="return confirm('Tem certeza que deseja sair?')">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <button class="btn btn-outline-light btn-sm position-relative" type="button"
+                            onclick="alert('Funcionalidade em desenvolvimento')">
+                            <i class="fas fa-bell"></i>
+                            <span
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                style="font-size: 0.6em;">
+                                3
+                                <span class="visually-hidden">notificações não lidas</span>
+                            </span>
+                        </button>
+
+                        <button class="btn btn-outline-light btn-sm" type="button"
+                            onclick="alert('Central de ajuda em desenvolvimento')">
+                            <i class="fas fa-question-circle"></i>
+                        </button>
+
+                        {% else %}
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-outline-light btn-sm px-3" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                            <a class="btn btn-light btn-sm px-3" href="{% url 'cadastro' %}">
+                                <i class="fas fa-user-plus me-2"></i>Cadastre-se
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<style>
+    /* Header Styling - Dashboard Theme */
+    .header {
+        background-color: #007bff;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        z-index: 1030;
+    }
+
+    /* Logo Styling */
+    .logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .logo-container:hover {
+        transform: scale(1.05) rotate(10deg);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    }
+
+    .sitename {
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Navigation Menu */
+    .nav-menu-item {
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9) !important;
+        padding: 0.75rem 1rem !important;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        position: relative;
+        backdrop-filter: blur(10px);
+    }
+
+    .nav-menu-item:hover {
+        color: #fff !important;
+        background-color: rgba(255, 255, 255, 0.15);
+        transform: translateY(-1px);
+    }
+
+    .nav-menu-item.active {
+        background-color: rgba(52, 152, 219, 0.3);
+        color: #fff !important;
+        box-shadow: inset 0 0 10px rgba(52, 152, 219, 0.2);
+    }
+
+    .nav-menu-item::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #3498db, #2ecc71);
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+        border-radius: 2px;
+    }
+
+    .nav-menu-item:hover::before,
+    .nav-menu-item.active::before {
+        width: 80%;
+    }
+
+    /* Buttons Styling */
+    .btn {
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        font-size: 0.875rem;
+        border-width: 1.5px;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-outline-light {
+        border-color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+    }
+
+    .btn-outline-light:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.6);
+        color: #fff;
+    }
+
+    .btn-light {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-color: rgba(255, 255, 255, 0.9);
+        color: #2c3e50;
+    }
+
+    .btn-light:hover {
+        background-color: #fff;
+        border-color: #fff;
+        color: #007bff;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+    }
+
+    /* Dropdown Styling */
+    .dropdown-menu {
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 0;
+        min-width: 220px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .dropdown-item {
+        padding: 0.75rem 1.25rem;
+        transition: all 0.3s ease;
+        border-radius: 0;
+    }
+
+    .dropdown-item:hover {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #2c3e50;
+        transform: translateX(4px);
+    }
+
+    .dropdown-item.text-danger:hover {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+    }
+
+    /* Notification Badge */
+    .badge {
+        font-size: 0.6em !important;
+        min-width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Navbar Toggler */
+    .navbar-toggler {
+        padding: 0.25rem 0.5rem;
+        border-radius: 8px;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .navbar-toggler:focus {
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.4);
+    }
+
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255%2C%20255%2C%20255%2C%201%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+    }
+
+
+    /* Mobile Responsiveness */
+    @media (max-width: 991.98px) {
+        .header {
+            background: #007bff;
+        }
+
+        .navbar-nav {
+            text-align: center;
+            margin: 1rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .nav-menu-item {
+            margin: 0.25rem 0;
+            width: 100%;
+        }
+
+        .d-flex.gap-2 {
+            flex-direction: column;
+            gap: 0.5rem !important;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .dropdown-toggle {
+            width: 100%;
+        }
+
+        .logo-container {
+            width: 45px;
+            height: 45px;
+        }
+
+        .sitename {
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .container-fluid {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+
+        .gap-2 {
+            gap: 0.25rem !important;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .logo-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+        }
+
+        .sitename {
+            font-size: 0.75rem;
+        }
+    }
+
+    /* Animation for mobile menu */
+    .navbar-collapse {
+        transition: all 0.4s ease;
+    }
+
+    .collapsing {
+        transition: height 0.4s ease;
+    }
+
+    /* Focus states for accessibility */
+    .btn:focus,
+    .nav-link:focus,
+    .dropdown-item:focus {
+        outline: 2px solid #3498db;
+        outline-offset: 2px;
+    }
+
+    /* Smooth scrolling for anchor links */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Dashboard specific animations */
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .header {
+        animation: fadeInDown 0.8s ease-out;
+    }
+
+    /* Glassmorphism effect */
+    .dropdown-menu {
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="hero-img">
+            <img src="{% static 'iotmonitor/assets/img/Hidra_logo.ico' %}" alt="Logo">
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div id="quality-status-card"
+            class="card status-card {% if iqa.classificacao == 'Ruim' %}danger{% elif iqa.classificacao == 'Péssima' %}danger{% elif iqa.classificacao == 'Regular' %}warning{% endif %}">
+            <div class="status-icon">
+                <i class="fas fa-water"></i>
+            </div>
+            <div class="status-title">Qualidade da Água</div>
+            <div class="status-value">
+                <div class="iqa-value" data-iqa="value">{{ iqa.valor }}</div>
+                <div style="font-size: 0.9rem; margin-top: 10px;">Índice de Qualidade da Água</div>
+                <span class="status-indicator {{ iqa.css_class }}"></span>
+                <span data-iqa="classification">{{ iqa.classificacao }}</span>
+            </div>
+        </div>
+
+        <div id="flood-status-card"
+            class="card status-card {% if flood_risk == 'Risco Alto' %}danger{% elif flood_risk == 'Risco Moderado' %}warning{% endif %}">
+            <div class="status-icon">
+                <i class="fas fa-cloud-rain"></i>
+            </div>
+            <div class="status-title">Risco de Enchente</div>
+            <div class="status-value" data-flood-risk="level">
+                <span
+                    class="status-indicator {% if flood_risk == 'Risco Alto' %}status-critical{% elif flood_risk == 'Risco Moderado' %}status-warning{% else %}status-good{% endif %}"></span>
+                {{ flood_risk }}
+            </div>
+        </div>
+    </div>
+
+    <div class="sensors-grid">
+        <div class="sensor-card" data-sensor-card="temperatura" data-sensor-name="Temperatura da Água" data-sensor-unit="°C">
+            <div class="sensor-icon"><i class="fas fa-thermometer-half"></i></div>
+            <div class="sensor-name">Temperatura da Água</div>
+            <div class="sensor-value" data-sensor-value="temperatura">{{ sensor_data.temperatura|floatformat:1 }}</div>
+            <div class="sensor-unit">°C</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
+        </div>
+
+        <div class="sensor-card" data-sensor-card="ph" data-sensor-name="pH" data-sensor-unit="pH">
+            <div class="sensor-icon"><i class="fas fa-vial"></i></div>
+            <div class="sensor-name">pH</div>
+            <div class="sensor-value" data-sensor-value="ph">{{ sensor_data.ph|floatformat:1 }}</div>
+            <div class="sensor-unit">pH</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
+        </div>
+
+        <div class="sensor-card" data-sensor-card="oxigenio" data-sensor-name="Oxigênio Dissolvido" data-sensor-unit="mg/L">
+            <div class="sensor-icon"><i class="fas fa-lungs"></i></div>
+            <div class="sensor-name">Oxigênio Dissolvido</div>
+            <div class="sensor-value" data-sensor-value="oxigenio">{{ sensor_data.oxigenio|floatformat:1 }}</div>
+            <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
+        </div>
+
+        <div class="sensor-card" data-sensor-card="dbo" data-sensor-name="DBO" data-sensor-unit="mg/L">
+            <div class="sensor-icon"><i class="fas fa-leaf"></i></div>
+            <div class="sensor-name">DBO</div>
+            <div class="sensor-value" data-sensor-value="dbo">{{ sensor_data.dbo|floatformat:1 }}</div>
+            <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
+        </div>
+
+        <div class="sensor-card" data-sensor-card="coliformes" data-sensor-name="Coliformes Termotolerantes" data-sensor-unit="NMP/100mL">
+            <div class="sensor-icon"><i class="fas fa-bacteria"></i></div>
+            <div class="sensor-name">Coliformes Termotolerantes</div>
+            <div class="sensor-value" data-sensor-value="coliformes">{{ sensor_data.coliformes|floatformat:0 }}</div>
+            <div class="sensor-unit">NMP/100mL</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
+        </div>
+
+        <div class="sensor-card" data-sensor-card="nitrogenio" data-sensor-name="Nitrogênio Total" data-sensor-unit="mg/L">
+            <div class="sensor-icon"><i class="fas fa-atom"></i></div>
+            <div class="sensor-name">Nitrogênio Total</div>
+            <div class="sensor-value" data-sensor-value="nitrogenio">{{ sensor_data.nitrogenio|floatformat:2 }}</div>
+            <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
+        </div>
+
+        <div class="sensor-card" data-sensor-card="fosforo" data-sensor-name="Fósforo Total" data-sensor-unit="mg/L">
+            <div class="sensor-icon"><i class="fas fa-fire"></i></div>
+            <div class="sensor-name">Fósforo Total</div>
+            <div class="sensor-value" data-sensor-value="fosforo">{{ sensor_data.fosforo|floatformat:3 }}</div>
+            <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
+        </div>
+
+        <div class="sensor-card" data-sensor-card="turbidez" data-sensor-name="Turbidez" data-sensor-unit="NTU">
+            <div class="sensor-icon"><i class="fas fa-eye"></i></div>
+            <div class="sensor-name">Turbidez</div>
+            <div class="sensor-value" data-sensor-value="turbidez">{{ sensor_data.turbidez|floatformat:1 }}</div>
+            <div class="sensor-unit">NTU</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
+        </div>
+
+        <div class="sensor-card" data-sensor-card="solidos" data-sensor-name="Sólidos Totais" data-sensor-unit="mg/L">
+            <div class="sensor-icon"><i class="fas fa-cubes"></i></div>
+            <div class="sensor-name">Sólidos Totais</div>
+            <div class="sensor-value" data-sensor-value="solidos">{{ sensor_data.solidos|floatformat:0 }}</div>
+            <div class="sensor-unit">mg/L</div>
+            <div class="sensor-unit">Clique para visualizar dados</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="map-container">
+            <div class="section-title">
+                <i class="fas fa-map-marker-alt"></i>
+                Localização do Sensor
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <div class="chart-container">
+            <div class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Tendência dos Parâmetros
+            </div>
+            <div class="chart-controls">
+                <button class="chart-btn active" onclick="updateChart('temperature')">Temperatura</button>
+                <button class="chart-btn" onclick="updateChart('ph')">pH</button>
+                <button class="chart-btn" onclick="updateChart('oxygen')">Oxigênio</button>
+                <button class="chart-btn" onclick="updateChart('turbidity')">Turbidez</button>
+            </div>
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+
+    <div class="last-update">
+        <i class="fas fa-clock"></i> Última atualização: <span id="last-update-time">{{ last_update|date:"d/m/Y H:i" }}</span>
+    </div>
+</div>
+
+
+<div class="modal fade" id="historicalChartModal" tabindex="-1" aria-labelledby="historicalChartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historicalChartModalLabel">Histórico do Sensor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="chart-loading-indicator" style="text-align: center; padding: 40px;">
+                    <p>Carregando dados do histórico...</p>
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 400px; display: none;">
+                    <canvas id="historicalChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Passar dados iniciais do contexto Django para JavaScript
+    const initialSensorData = {
+        temperatura: {{ sensor_data.temperatura|default:0 }},
+        ph: {{ sensor_data.ph|default:7 }},
+        oxigenio: {{ sensor_data.oxigenio|default:0 }},
+        turbidez: {{ sensor_data.turbidez|default:0 }},
+        iqa: {{ iqa.valor|default:0 }}
+    };
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'iotmonitor/assets/js/dashboard.js' %}"></script>
+{% endblock %}

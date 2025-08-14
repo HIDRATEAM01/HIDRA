@@ -1,0 +1,202 @@
+{% extends 'iotmonitor/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Qualidade da Água | HIDRA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" />
+<link rel="stylesheet" href="{% static 'iotmonitor/assets/css/dashboard.css' %}" />
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+{% endblock %}
+
+{% block header %}
+<header id="header" class="header d-flex align-items-center">
+    <div class="container-fluid container-xl position-relative d-flex align-items-center">
+        <a href="{% url 'homepage' %}" class="logo d-flex align-items-center me-auto">
+            <h1 class="sitename">HIDRA</h1>
+        </a>
+
+        <nav id="navmenu" class="navmenu">
+            <ul>
+                <li><a href="{% url 'homepage' %}">Home</a></li>
+                <li><a href="{% url 'admin:index' %}">Admin</a></li>
+            </ul>
+            <i class="mobile-nav-toggle d-xl-none fas fa-bars"></i>
+        </nav>
+
+        <div class="header-actions d-flex align-items-center" style="gap: 16px;">
+            {% if user.is_authenticated %}
+            <!-- Dropdown do usuário logado -->
+            <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-user-circle"></i> {{ user.username }}
+                </button>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                    <a class="dropdown-item" href="{% url 'dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a class="dropdown-item" href="#" onclick="alert('Funcionalidade em desenvolvimento')">
+                        <i class="fas fa-user-cog"></i> Perfil
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item text-danger" href="{% url 'logout' %}"
+                        onclick="return confirm('Tem certeza que deseja sair?')">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <!-- Botões para usuários não logados -->
+            <a class="btn btn-outline-light" href="{% url 'login' %}">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a class="btn btn-outline-light" href="{% url 'cadastro' %}">
+                <i class="fas fa-user-plus"></i> Cadastre-se
+            </a>
+            {% endif %}
+        </div>
+
+        <a class="btn-getstarted" href="https://hidra.online/"  target="_blank">Dashboard 2</a>
+    </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="hero-img">
+            <img src="{% static 'iotmonitor/assets/img/Hidra_logo.ico' %}" alt="Logo">
+        </div>
+    </div>
+
+    <!-- Cards de Status Principal -->
+    <div class="dashboard-grid">
+        <div class="card status-card">
+            <div class="status-icon">
+                <i class="fas fa-water"></i>
+            </div>
+            <div class="status-title">Qualidade da Água</div>
+            <div class="status-value">
+                <span class="status-indicator status-good"></span>
+                Boa Qualidade
+            </div>
+        </div>
+
+        <div class="card status-card warning">
+            <div class="status-icon">
+                <i class="fas fa-cloud-rain"></i>
+            </div>
+            <div class="status-title">Risco de Enchente</div>
+            <div class="status-value">
+                <span class="status-indicator status-warning"></span>
+                Risco Moderado
+            </div>
+        </div>
+    </div>
+
+    <!-- Grade de Sensores -->
+    <div class="sensors-grid">
+        <div class="sensor-card">
+            <div class="sensor-icon"><i class="fas fa-thermometer-half"></i></div>
+            <div class="sensor-name">Temperatura da Água</div>
+            <div class="sensor-value">24.5</div>
+            <div class="sensor-unit">°C</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-icon"><i class="fas fa-vial"></i></div>
+            <div class="sensor-name">pH</div>
+            <div class="sensor-value">7.2</div>
+            <div class="sensor-unit">pH</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-icon"><i class="fas fa-lungs"></i></div>
+            <div class="sensor-name">Oxigênio Dissolvido</div>
+            <div class="sensor-value">6.8</div>
+            <div class="sensor-unit">mg/L</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-icon"><i class="fas fa-leaf"></i></div>
+            <div class="sensor-name">DBO</div>
+            <div class="sensor-value">3.2</div>
+            <div class="sensor-unit">mg/L</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-icon"><i class="fas fa-bacteria"></i></div>
+            <div class="sensor-name">Coliformes Termotolerantes</div>
+            <div class="sensor-value">120</div>
+            <div class="sensor-unit">NMP/100mL</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-icon"><i class="fas fa-atom"></i></div>
+            <div class="sensor-name">Nitrogênio Total</div>
+            <div class="sensor-value">1.8</div>
+            <div class="sensor-unit">mg/L</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-icon"><i class="fas fa-fire"></i></div>
+            <div class="sensor-name">Fósforo Total</div>
+            <div class="sensor-value">0.12</div>
+            <div class="sensor-unit">mg/L</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-icon"><i class="fas fa-eye"></i></div>
+            <div class="sensor-name">Turbidez</div>
+            <div class="sensor-value">15.6</div>
+            <div class="sensor-unit">NTU</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-icon"><i class="fas fa-cubes"></i></div>
+            <div class="sensor-name">Sólidos Totais</div>
+            <div class="sensor-value">450</div>
+            <div class="sensor-unit">mg/L</div>
+        </div>
+    </div>
+
+    <!-- Mapa e Gráfico -->
+    <div class="main-content">
+        <div class="map-container">
+            <div class="section-title">
+                <i class="fas fa-map-marker-alt"></i>
+                Localização do Sensor
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <div class="chart-container">
+            <div class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Tendência dos Parâmetros
+            </div>
+            <div class="chart-controls">
+                <button class="chart-btn active" onclick="updateChart('temperature')">Temperatura</button>
+                <button class="chart-btn" onclick="updateChart('ph')">pH</button>
+                <button class="chart-btn" onclick="updateChart('oxygen')">Oxigênio</button>
+                <button class="chart-btn" onclick="updateChart('turbidity')">Turbidez</button>
+            </div>
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+
+    <div class="last-update">
+        <i class="fas fa-clock"></i> Última atualização: {{ last_update|date:"d/m/Y H:i" }}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'iotmonitor/assets/js/dashboard.js' %}"></script>
+{% endblock %}
