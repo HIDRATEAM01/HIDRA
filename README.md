@@ -123,11 +123,11 @@ A qualidade da água em canais a céu aberto é um indicador ambiental crítico.
 
 | Discente       | Curso                |
 |----------------|----------------------|
-| **Adriana Reis**   | Engenharia Elet### |
-| **Alcidio Tenani** | Engenharia Elétrica   |
-| **Gabriel Vitor**  | Engenharia Elet### |
-| **Josuel Luna**    | Engenharia Elet### |
-| **Thiago Santos**  | Engenharia Elet### |
+| **Adriana Reis**   | Engenharia  |
+| **Alcidio Tenani** | Engenharia  |
+| **Gabriel Vitor**  | Engenharia  |
+| **Josuel Luna**    | Engenharia  |
+| **Thiago Santos**  | Engenharia  |
 
 </div>
 
