@@ -49,7 +49,11 @@ export const useModuleStore = defineStore("module", () => {
     const module = modules.value.find((mod) => mod.id === idModule);
     if (module) {
       // TODO: Implement module opening logic
-      notificationStore.raise(`Abrindo módulo: ${module.name}`, "info");
+      notificationStore.raise(
+        "Funcionalidade ainda não implementada.",
+        "info",
+        `Abrindo módulo: ${module.name}`
+      );
     }
   }
 

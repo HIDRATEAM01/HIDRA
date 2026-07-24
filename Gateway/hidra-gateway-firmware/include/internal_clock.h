@@ -18,6 +18,7 @@ class InternalClock {
 
   void setTimeZone(long timezone, byte daysavetime = 0);
   void setClockByServer();
+  void setClockByString(String date, String time);
   void setClock(int day, int month, int year, int hour, int minute, int second);
   String getClock(DateFormats dateformat);
 

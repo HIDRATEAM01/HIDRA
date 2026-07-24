@@ -16,10 +16,10 @@ void WiFiManager::updateWiFiMode() {
     WiFi.mode(WIFI_MODE_APSTA);
     serial.log(LOG_INFO, "[WiFiManager] Modo AP+STA ativado.");
   } else if (wifiConnected) {
-    WiFi.mode(WIFI_MODE_STA);
+    WiFi.mode(WIFI_MODE_APSTA);
     serial.log(LOG_INFO, "[WiFiManager] Modo STA ativado.");
   } else if (apActive) {
-    WiFi.mode(WIFI_MODE_AP);
+    WiFi.mode(WIFI_MODE_APSTA);
     serial.log(LOG_INFO, "[WiFiManager] Modo AP ativado.");
   } else {
     WiFi.mode(WIFI_MODE_NULL);
@@ -86,7 +86,12 @@ void WiFiManager::stopAccessPoint() {
   serial.log(LOG_INFO, "[WiFiManager] Access Point desativado.");
 }
 
-void WiFiManager::setAcessPoint(const char *ssid, const char *password, IPAddress localIP, IPAddress gateway, IPAddress subnet) {
+void WiFiManager::restartAccessPoint() {
+  stopAccessPoint();
+  startAccessPoint();
+}
+
+void WiFiManager::setAccessPoint(const char *ssid, const char *password, IPAddress localIP, IPAddress gateway, IPAddress subnet) {
   apSSID = ssid;
   apPassword = password;
   apIP = localIP;
@@ -149,7 +154,7 @@ String WiFiManager::scanNetworks() {
 
   String jsonOutput;
   serializeJson(doc, jsonOutput);
-  serial.log(LOG_INFO, "[WiFiManager] Redes WiFi escaneadas: ", jsonOutput.c_str());
+  // serial.log(LOG_INFO, "[WiFiManager] Redes WiFi escaneadas: ", jsonOutput.c_str());
   return jsonOutput;
 }
 

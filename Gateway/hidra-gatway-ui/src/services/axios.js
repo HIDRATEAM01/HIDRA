@@ -1,10 +1,7 @@
 import axios from "axios";
 
-//const baseURL = "http://localhost:8000";
-const baseURL = "";
-
 const api = axios.create({
-  baseURL: baseURL,
+  baseURL: process.env.VUE_APP_BASE_URL,
   timeout: 10000,
 });
 

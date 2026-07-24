@@ -5,7 +5,9 @@ export function getWifiStatus() {
 }
 
 export function getWifiNetworks() {
-  return api.get("/wifi/networks");
+  return api.get("/wifi/networks", {
+    timeout: 20000,
+  });
 }
 
 export function postWifiStatus(config) {

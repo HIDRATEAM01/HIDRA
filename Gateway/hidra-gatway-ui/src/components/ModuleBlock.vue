@@ -1,5 +1,5 @@
 <template>
-  <v-card class="px-3" style="width: 350px">
+  <v-card class="px-3" style="max-width: 350px; min-width: 330px">
     <v-card-title class="mr-3 mb-4">
       <v-row justify="space-between">
         <v-col class="ml-16">

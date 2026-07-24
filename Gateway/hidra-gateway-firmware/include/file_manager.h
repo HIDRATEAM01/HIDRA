@@ -2,6 +2,7 @@
 #define FILE_MANAGER_H
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <FS.h>
 #include <LittleFS.h>
 
@@ -24,6 +25,8 @@ class FileManager {
 
   void listFiles(const char *path = "/", int maxDepth = 4);
   bool removeRecursive(const char *path);
+
+  bool getEncryptionFile(JsonDocument &doc, const char *path = "/encryption.key");
 
   void end();
 };

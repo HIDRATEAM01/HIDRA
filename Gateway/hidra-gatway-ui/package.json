@@ -1,9 +1,10 @@
 {
   "name": "hidra-gatway-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
+    "php": "php -S 0.0.0.0:8000 php-server.php",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
@@ -31,7 +32,11 @@
     "eslint-plugin-vue": "^8.0.3",
     "prettier": "^2.4.1",
     "vue-cli-plugin-compression": "^2.0.0",
-    "vue-cli-plugin-vuetify": "^2.5.8"
+    "vue-cli-plugin-vuetify": "^2.5.8",
+    "webpack": "^5.99.9"
+  },
+  "prettier": {
+    "endOfLine": "crlf"
   },
   "eslintConfig": {
     "root": true,

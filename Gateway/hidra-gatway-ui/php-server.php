@@ -9,7 +9,7 @@ $sensorTypes = ['NTC', 'COR', 'SUN'];
 $moduleNames = ['rio azul 2', 'rio mais verde', 'verde vivo', 'hidra nascente', 'rio de março', 'lagoa azul'];
 
 $serverStatus = 0; // 1 = ligado, 0 = desligado
-$wifiStatus = 1; // 1 = ligado, 0 = desligado
+$wifiStatus = 0; // 1 = ligado, 0 = desligado
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE');

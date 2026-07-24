@@ -1,6 +1,6 @@
 <template>
-  <v-container fluid class="pb-4">
-    <v-row class="px-4" justify="center">
+  <v-container fluid class="px-0 pb-4">
+    <v-row class="px-0" justify="center">
       <v-col cols="auto">
         <ConfigBlock
           title="Servidor"
